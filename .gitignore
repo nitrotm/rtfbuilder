@@ -1,0 +1,9 @@
+.claude/
+.direnv
+.devenv
+.pre-commit-config.yaml
+.yarn/
+
+demo/*.rtf
+dist/
+node_modules/

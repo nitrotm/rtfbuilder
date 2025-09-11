@@ -1,0 +1,66 @@
+{
+  "name": "rtfbuilder",
+  "version": "0.9.0",
+  "description": "A comprehensive JavaScript library for creating Rich Text Format (RTF) documents.",
+  "keywords": [
+    "rtf",
+    "document",
+    "generator",
+    "writer",
+    "creator"
+  ],
+  "author": "Antony Ducommun",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nitrotm/rtfbuilder.git"
+  },
+  "type": "module",
+  "typings": "dist/esm/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/esm/index.d.ts",
+        "require": "./dist/cjs/index.d.ts"
+      },
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./rtf": {
+      "types": {
+        "import": "./dist/esm/rtf/index.d.ts",
+        "require": "./dist/cjs/rtf/index.d.ts"
+      },
+      "import": "./dist/esm/rtf/index.js",
+      "require": "./dist/cjs/rtf/index.js"
+    },
+    "./validation": {
+      "types": {
+        "import": "./dist/esm/validation/index.d.ts",
+        "require": "./dist/cjs/validation/index.d.ts"
+      },
+      "import": "./dist/esm/validation/index.js",
+      "require": "./dist/cjs/validation/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist/cjs/**/!(*.tsbuildinfo)",
+    "dist/esm/**/!(*.tsbuildinfo)",
+    "package.json",
+    "LICENSE.txt",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/node": "^20",
+    "tslib": "^2",
+    "tsx": "^4",
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json",
+    "watch": "tsc -w -p ./tsconfig.esm.json"
+  }
+}

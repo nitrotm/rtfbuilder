@@ -1,0 +1,21 @@
+printWidth: 160
+endOfLine: lf
+overrides:
+  - files:
+      - "*.js"
+      - "*.jsx"
+      - "*.ts"
+      - "*.tsx"
+    options:
+      printWidth: 160
+      tabWidth: 2
+      semi: false
+      singleQuote: false
+      trailingComma: es5
+      bracketSpacing: true
+      bracketSameLine: false
+      arrowParens: always
+  - files:
+      - "*.json"
+    options:
+      tabWidth: 2
