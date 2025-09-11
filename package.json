@@ -9,12 +9,22 @@
     "writer",
     "creator"
   ],
-  "author": "Antony Ducommun",
+  "author": {
+    "name": "Antony Ducommun",
+    "url": "https://github.com/nitrotm"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/nitrotm/rtfbuilder.git"
   },
+  "bugs": {
+    "url": "https://github.com/nitrotm/rtfbuilder/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "packageManager": "yarn@4.9.1",
   "type": "module",
   "typings": "dist/esm/index.d.ts",
   "main": "dist/cjs/index.js",
