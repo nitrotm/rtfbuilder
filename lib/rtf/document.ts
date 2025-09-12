@@ -329,11 +329,7 @@ export function generateDocumentInfo(model: RTFDocumentModel, options: Partial<R
 
   // General informations
   if (options.creationTime) parts.push(generateTimestamp("creatim", options.creationTime))
-  // if (options.) parts.push(generateTimestamp("revtim", stats.revtim))
-  // if (options.) parts.push(generateTimestamp("printim", stats.printim))
-  if (options.backupTime) parts.push(generateTimestamp("buptim", options.backupTime))
   if (options.version !== undefined) parts.push(`{\\version${options.version}}`)
-  if (options.editingMinutes !== undefined) parts.push(`{\\edmins${options.editingMinutes}}`)
   if (options.internalVersion !== undefined) parts.push(`{\\vern${options.internalVersion}}`)
 
   // Statistics

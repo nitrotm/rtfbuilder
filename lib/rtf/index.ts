@@ -19,9 +19,6 @@ export type RTFGenerationOptions = {
   generator: string // Generator name
   creationTime: Date // Document creation time
   version: number // Document version
-  editingMinutes: number // Total editing time in minutes
-  printTime: Date // Last print time
-  backupTime: Date // Last backup time
   internalVersion: number // Internal version number
 }
 

@@ -38,6 +38,14 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },
+    "./ooxml": {
+      "types": {
+        "import": "./dist/esm/ooxml/index.d.ts",
+        "require": "./dist/cjs/ooxml/index.d.ts"
+      },
+      "import": "./dist/esm/ooxml/index.js",
+      "require": "./dist/cjs/ooxml/index.js"
+    },
     "./rtf": {
       "types": {
         "import": "./dist/esm/rtf/index.d.ts",
@@ -63,8 +71,12 @@
     "LICENSE.txt",
     "README.md"
   ],
+  "dependencies": {
+    "fflate": "^0.8"
+  },
   "devDependencies": {
     "@types/node": "^20",
+    "jsx-dev-runtime": "file:./jsx-dev-runtime",
     "tslib": "^2",
     "tsx": "^4",
     "typescript": "^5"

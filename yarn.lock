@@ -526,6 +526,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fflate@npm:^0.8":
+  version: 0.8.2
+  resolution: "fflate@npm:0.8.2"
+  checksum: 10c0/03448d630c0a583abea594835a9fdb2aaf7d67787055a761515bf4ed862913cfd693b4c4ffd5c3f3b355a70cf1e19033e9ae5aedcca103188aaff91b8bd6e293
+  languageName: node
+  linkType: hard
+
 "foreground-child@npm:^3.1.0":
   version: 3.3.1
   resolution: "foreground-child@npm:3.3.1"
@@ -677,6 +684,13 @@ __metadata:
     "@pkgjs/parseargs":
       optional: true
   checksum: 10c0/6acc10d139eaefdbe04d2f679e6191b3abf073f111edf10b1de5302c97ec93fffeb2fdd8681ed17f16268aa9dd4f8c588ed9d1d3bffbbfa6e8bf897cbb3149b9
+  languageName: node
+  linkType: hard
+
+"jsx-dev-runtime@file:./jsx-dev-runtime::locator=rtfbuilder%40workspace%3A.":
+  version: 0.0.0
+  resolution: "jsx-dev-runtime@file:./jsx-dev-runtime#./jsx-dev-runtime::hash=01bb4f&locator=rtfbuilder%40workspace%3A."
+  checksum: 10c0/110d928e1d1d872bef2778cc82f8581ba33fb91accb73db7b8b3cb924ee4111ba56193e47207f88e3c86fed1d00dbda02a46cca1eb4f8fbcb8a395803fe063ba
   languageName: node
   linkType: hard
 
@@ -919,6 +933,8 @@ __metadata:
   resolution: "rtfbuilder@workspace:."
   dependencies:
     "@types/node": "npm:^20"
+    fflate: "npm:^0.8"
+    jsx-dev-runtime: "file:./jsx-dev-runtime"
     tslib: "npm:^2"
     tsx: "npm:^4"
     typescript: "npm:^5"

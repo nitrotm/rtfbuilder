@@ -7,3 +7,4 @@
 demo/*.rtf
 dist/
 node_modules/
+tmp/

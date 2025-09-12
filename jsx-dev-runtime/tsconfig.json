@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "outDir": ".",
+    "sourceMap": false,
+    "noEmit": false
+  },
+  "include": ["jsx-dev-runtime.ts"],
+  "exclude": ["node_modules"]
+}

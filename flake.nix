@@ -49,6 +49,7 @@
                 gitFull
                 nodejs
                 nodePackages.prettier
+                xmlformat
                 yarn-berry
               ];
               enterShell = ''
