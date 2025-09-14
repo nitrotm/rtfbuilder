@@ -50,11 +50,11 @@ yarn add rtfbuilder
 ## Quick Start
 
 ```typescript
-import { DocumentBuilder, pt } from "rtfbuilder";
+import { RichTextDocumentBuilder, pt } from "rtfbuilder";
 import { RTFDocument } from "rtfbuilder/rtf";
 
 // Create a document builder
-const builder = new DocumentBuilder();
+const builder = new RichTextDocumentBuilder();
 
 // Add colors and fonts
 builder.withColor("red", { red: 255, green: 0, blue: 0 });
@@ -79,10 +79,10 @@ console.log(builder.buildInto(new RTFDocument()).render());
 
 ### Document Builder
 
-The `DocumentBuilder` class provides the main entry point for creating RTF documents:
+The `RichTextDocumentBuilder` class provides the main entry point for creating RTF documents:
 
 ```typescript
-const builder = new DocumentBuilder();
+const builder = new RichTextDocumentBuilder();
 
 // Document metadata
 builder.info({ title: "My Document", author: "John Doe" });
@@ -224,22 +224,33 @@ const content = builder.buildInto(doc).render();
 
 See the demo folder for complete examples including:
 
-- [Simple document](demo/simple.ts)
-- [Text formatting](demo/text-formatting.ts)
-- [Using stylesheets](demo/style.ts)
-- [Section layouts](demo/section.ts)
-- [Item lists](demo/list.ts)
-- [Bookmarks & hyperlinks](demo/navigation.ts)
-- [Table layouts](demo/table.ts)
-- [Pictures](demo/picture.ts)
-- [Footnotes and endnotes](demo/footnote.ts)
+- [Simple document](demo/examples/simple.ts)
+- [Text formatting](demo/examples/text-formatting.ts)
+- [Using stylesheets](demo/examples/style.ts)
+- [Section layouts](demo/examples/section.ts)
+- [Item lists](demo/examples/list.ts)
+- [Bookmarks & hyperlinks](demo/examples/navigation.ts)
+- [Table layouts](demo/examples/table.ts)
+- [Pictures](demo/examples/picture.ts)
+- [Footnotes and endnotes](demo/examples/footnote.ts)
 
-If you are [flakes](https://nixos.wiki/wiki/flakes)-ready, the dev shell contains a `run-demos` script to generate the corresponding RTF. Otherwise:
+If you are [flakes](https://nixos.wiki/wiki/flakes)-ready, the dev shell contains a `run-demos` script to generate the corresponding RTF/DOCX. Otherwise:
 
 ```shell
-for i in demo/*.ts; do
-  tsx $i demo/$(basename $i .ts).rtf
-done
+run-demos
+# or
+run-demo simple
+# or
+tsx demo/cli.ts --validate simple simple.docx
+tsx demo/cli.ts --validate simple simple.rtf
+```
+
+## OOXML validation
+
+The dev shell contains a script to validate an OOXML/DOCX against the ECMA-376 XSDs:
+
+```shell
+validate-ooxml simple.docx
 ```
 
 ## License

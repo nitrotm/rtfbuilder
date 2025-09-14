@@ -82,12 +82,10 @@
                   mkdir -p "$DEVENV_ROOT/demo/outputs/"
                   for i in "$DEVENV_ROOT/demo/examples/"*.ts; do
                     run-demo "$(basename $i .ts)"
-                    tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$(basename $i .ts)" "$DEVENV_ROOT/demo/outputs/$(basename $i .ts).docx"
-                    tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$(basename $i .ts)" "$DEVENV_ROOT/demo/outputs/$(basename $i .ts).rtf"
                     echo
                   done
                 '';
-                validate-docx.exec = ''
+                validate-ooxml.exec = ''
                   set -eou pipefail
 
                   xml_validation() {
