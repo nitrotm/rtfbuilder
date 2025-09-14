@@ -1,0 +1,52 @@
+{
+  "name": "rtfbuilder-jsx-runtime",
+  "version": "0.0.0",
+  "keywords": [
+    "jsx-runtime",
+    "xml"
+  ],
+  "author": {
+    "name": "Antony Ducommun",
+    "url": "https://github.com/nitrotm"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nitrotm/rtfbuilder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nitrotm/rtfbuilder/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "packageManager": "yarn@4.9.1",
+  "type": "module",
+  "typings": "dist/esm/jsx-runtime.d.ts",
+  "main": "dist/cjs/jsx-runtime.js",
+  "module": "dist/esm/jsx-runtime.js",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/esm/jsx-runtime.d.ts",
+        "require": "./dist/cjs/jsx-runtime.d.ts"
+      },
+      "import": "./dist/esm/jsx-runtime.js",
+      "require": "./dist/cjs/jsx-runtime.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist/cjs/**/!(*.tsbuildinfo)",
+    "dist/esm/**/!(*.tsbuildinfo)",
+    "package.json",
+    "LICENSE.txt",
+    "README.md"
+  ],
+  "devDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
+  }
+}

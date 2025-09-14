@@ -7,8 +7,8 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsxdev",
-    "jsxImportSource": "jsx-dev-runtime",
+    "jsx": "react-jsx",
+    "jsxImportSource": "rtfbuilder-jsx-runtime",
 
     /* Options */
     "allowJs": true,
@@ -33,5 +33,5 @@
     "verbatimModuleSyntax": false
   },
   "include": ["lib/**/*", "types/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["jsx-runtime", "node_modules", "dist"]
 }

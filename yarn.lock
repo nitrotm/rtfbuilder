@@ -687,13 +687,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsx-dev-runtime@file:./jsx-dev-runtime::locator=rtfbuilder%40workspace%3A.":
-  version: 0.0.0
-  resolution: "jsx-dev-runtime@file:./jsx-dev-runtime#./jsx-dev-runtime::hash=01bb4f&locator=rtfbuilder%40workspace%3A."
-  checksum: 10c0/110d928e1d1d872bef2778cc82f8581ba33fb91accb73db7b8b3cb924ee4111ba56193e47207f88e3c86fed1d00dbda02a46cca1eb4f8fbcb8a395803fe063ba
-  languageName: node
-  linkType: hard
-
 "lru-cache@npm:^10.0.1, lru-cache@npm:^10.2.0":
   version: 10.4.3
   resolution: "lru-cache@npm:10.4.3"
@@ -928,13 +921,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rtfbuilder-jsx-runtime@file:./jsx-runtime::locator=rtfbuilder%40workspace%3A.":
+  version: 0.0.0
+  resolution: "rtfbuilder-jsx-runtime@file:./jsx-runtime#./jsx-runtime::hash=ad5611&locator=rtfbuilder%40workspace%3A."
+  checksum: 10c0/f635d5a80e7146c6f2ba4c34f1e7d0647f9438c92f29ad31a9bdc1c233776a09529a6fa0800b718934a7cb19fa39e2add370b456f431e5c2c40ae95d8d72dad8
+  languageName: node
+  linkType: hard
+
 "rtfbuilder@workspace:.":
   version: 0.0.0-use.local
   resolution: "rtfbuilder@workspace:."
   dependencies:
     "@types/node": "npm:^20"
     fflate: "npm:^0.8"
-    jsx-dev-runtime: "file:./jsx-dev-runtime"
+    rtfbuilder-jsx-runtime: "file:./jsx-runtime"
     tslib: "npm:^2"
     tsx: "npm:^4"
     typescript: "npm:^5"

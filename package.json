@@ -72,17 +72,16 @@
     "README.md"
   ],
   "dependencies": {
-    "fflate": "^0.8"
+    "fflate": "^0.8",
+    "rtfbuilder-jsx-runtime": "file:./jsx-runtime"
   },
   "devDependencies": {
     "@types/node": "^20",
-    "jsx-dev-runtime": "file:./jsx-dev-runtime",
     "tslib": "^2",
     "tsx": "^4",
     "typescript": "^5"
   },
   "scripts": {
-    "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json",
-    "watch": "tsc -w -p ./tsconfig.esm.json"
+    "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
   }
 }

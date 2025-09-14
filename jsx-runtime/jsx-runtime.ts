@@ -78,4 +78,4 @@ export const jsx = (name: string | ((props: unknown) => unknown), { children, ..
   return new XmlElement(name, props, children ? (Array.isArray(children) ? children : [children]) : [])
 }
 
-export { jsx as jsxs, jsx as jsxDEV }
+export { jsx as jsxs }
