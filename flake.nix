@@ -79,7 +79,6 @@
                 run-demos.exec = ''
                   set -eou pipefail
 
-                  mkdir -p "$DEVENV_ROOT/demo/outputs/"
                   for i in "$DEVENV_ROOT/demo/examples/"*.ts; do
                     run-demo "$(basename $i .ts)"
                     echo

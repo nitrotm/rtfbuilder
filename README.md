@@ -2,11 +2,11 @@
 
 [![npm](https://img.shields.io/npm/v/rtfbuilder.svg)](https://www.npmjs.com/package/rtfbuilder)
 
-A modern JavaScript library for creating Rich Text Format (RTF) documents using an intuitive builder pattern.
+A modern JavaScript library for creating Rich Text Format (RTF/DOCX) documents using an intuitive builder pattern.
 
 ## Introduction
 
-This project germinated due to a lack of library options with typescript support to generate RTF documents directly from a web browser. The goal is to be able
+This project germinated due to a lack of library options with typescript support to generate RTF/DOCX documents directly from a web browser. The goal is to be able
 to export a simple document - think markdown or similar - to an office compatible format with a bit of control on the styling.
 
 Here is a list of supported features:
@@ -16,7 +16,7 @@ Here is a list of supported features:
 - Basic picture support.
 
 The library is built around a document builder using fluent patterns to programmatically compose the document, a document model to represent the document state
-and a RTF renderer to output into the target format. There's also a validator which can check that the document instance is well-formed (optional).
+and a renderer to output into the target format. There's also a validator which can check that the document instance is well-formed (optional).
 
 ## Roadmap
 
@@ -73,6 +73,14 @@ builder.withSection((section) => {
 
 // Generate RTF content (into a string)
 console.log(builder.buildInto(new RTFDocument()).render());
+```
+
+To output to DOCX ([ECMA-376](https://ecma-international.org/publications-and-standards/standards/ecma-376/)), replace the last line by:
+
+```typescript
+import { OOXMLDocument } from "rtfbuilder/ooxml";
+
+const zipData = builder.buildInto(new OOXMLDocument()).render();
 ```
 
 ## API Reference
