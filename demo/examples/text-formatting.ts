@@ -1,23 +1,6 @@
-import * as fs from "fs"
-import { DocumentBuilder, pt, mm, inch } from "../lib"
-import { RTFDocument } from "../lib/rtf"
-import { RTF_DOCUMENT_VALIDATOR } from "../lib/validation"
+import { RichTextDocumentBuilder, pt } from "../../lib"
 
-// Parse command line arguments
-const args = process.argv.slice(2)
-
-// Check for help flag or missing argument
-if (args.includes("--help") || args.includes("-h") || args.length === 0) {
-  console.log("Usage: text-formatting.ts <output.rtf> [--validate]")
-  console.log("  output.rtf: Path to output RTF file (required)")
-  process.exit(args.length === 0 ? 1 : 0)
-}
-
-const outputFile = args[0]
-const validator = args.includes("--validate") ? RTF_DOCUMENT_VALIDATOR : undefined
-
-// Create content using the new builder pattern
-const builder = new DocumentBuilder()
+const builder = new RichTextDocumentBuilder()
 
 // Setup colors for the demo
 builder.withColor("red", { red: 255, green: 0, blue: 0 })
@@ -492,13 +475,4 @@ builder.withSection((section) => {
   })
 })
 
-// Generate RTF content
-const content = builder.buildInto(new RTFDocument({ validator })).render()
-
-fs.writeFile(outputFile, content, (error) => {
-  if (error) {
-    console.error(error)
-  } else {
-    console.log(`Created ${outputFile}`)
-  }
-})
+export default builder

@@ -1,4 +1,4 @@
-import { RTFCharacterFormatting, RTFFootnoteElement, RTFPictureData, RTFPictureFormatting } from "lib/types"
+import { RTFCharacterFormatting, RTFFootnoteElement, RTFPictureData, RTFPictureFormatting } from "../types"
 
 import { RTFBuilder, SpecialContent } from "./base"
 import { CharacterBuilder } from "./character"

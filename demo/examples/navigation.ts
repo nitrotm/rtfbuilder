@@ -1,23 +1,6 @@
-import * as fs from "fs"
-import { DocumentBuilder, pt, RTFCharacterFormatting } from "../lib"
-import { RTFDocument } from "../lib/rtf"
-import { RTF_DOCUMENT_VALIDATOR } from "../lib/validation"
+import { RichTextDocumentBuilder, RTFCharacterFormatting } from "../../lib"
 
-// Parse command line arguments
-const args = process.argv.slice(2)
-
-// Check for help flag or missing argument
-if (args.includes("--help") || args.includes("-h") || args.length === 0) {
-  console.log("Usage: navigation.ts <output.rtf> [--validate]")
-  console.log("  output.rtf: Path to output RTF file (required)")
-  process.exit(args.length === 0 ? 1 : 0)
-}
-
-const outputFile = args[0]
-const validator = args.includes("--validate") ? RTF_DOCUMENT_VALIDATOR : undefined
-
-// Create content using the new builder pattern
-const builder = new DocumentBuilder()
+const builder = new RichTextDocumentBuilder()
 
 // Add colors for links and headings
 builder.withColor("linkBlue", { red: 0, green: 0, blue: 255 })
@@ -113,13 +96,4 @@ builder.withSection((section) => {
   section.body.withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
 })
 
-// Generate RTF content
-const content = builder.buildInto(new RTFDocument({ validator })).render()
-
-fs.writeFile(outputFile, content, (error) => {
-  if (error) {
-    console.error(error)
-  } else {
-    console.log(`Created ${outputFile}`)
-  }
-})
+export default builder

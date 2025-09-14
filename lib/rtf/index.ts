@@ -1,4 +1,4 @@
-import { AbstractDocument, DocumentOptions } from "lib/document"
+import { AbstractRichTextDocument, RichTextDocumentOptions } from "../document"
 
 import {
   generateCharset,
@@ -23,11 +23,11 @@ export type RTFGenerationOptions = {
 }
 
 /** Generate RTF document from the given model */
-export class RTFDocument extends AbstractDocument<string> {
+export class RTFDocument extends AbstractRichTextDocument<string> {
   /**
    * Create a new RTF document
    */
-  constructor(options: Partial<DocumentOptions> = {}) {
+  constructor(options: Partial<RichTextDocumentOptions> = {}) {
     super(options)
   }
 

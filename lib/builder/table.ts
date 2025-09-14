@@ -16,8 +16,8 @@ import {
   RTFTableRow,
   RTFTableRowFlag,
   RTFTableRowFormatting,
-} from "lib/types"
-import { pt } from "lib/utils"
+} from "../types"
+import { pt } from "../utils"
 
 import { RTFBuilder, SpecialContent } from "./base"
 import { ListBuilder } from "./list"

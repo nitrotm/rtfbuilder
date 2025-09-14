@@ -1,4 +1,4 @@
-import { RTFDocumentModel } from "lib/document"
+import { RichTextDocumentModel } from "../document"
 import {
   RTFCharset,
   RTFColor,
@@ -14,8 +14,8 @@ import {
   RTFStyle,
   RTFTypographySettings,
   RTFViewSettings,
-} from "lib/types"
-import { pt, RTFRegistry, toTwips } from "lib/utils"
+} from "../types"
+import { pt, RTFRegistry, toTwips } from "../utils"
 
 import { RTFGenerationOptions } from "."
 import { escapeRTFText, generateTimestamp } from "./base"
@@ -86,7 +86,7 @@ export function generateColorTable(colorRegistry: RTFRegistry<RTFColor>): string
 }
 
 /** Generate style table */
-export function generateStyleTable(model: RTFDocumentModel): string {
+export function generateStyleTable(model: RichTextDocumentModel): string {
   const parts = ["{\\stylesheet"]
 
   for (const entry of model.styleRegistry.entries()) {
@@ -313,7 +313,7 @@ export function generateListOverrideTable(listRegistry: RTFRegistry<RTFList>, li
 }
 
 /** Generate document info section */
-export function generateDocumentInfo(model: RTFDocumentModel, options: Partial<RTFGenerationOptions> = {}): string {
+export function generateDocumentInfo(model: RichTextDocumentModel, options: Partial<RTFGenerationOptions> = {}): string {
   const info = model.info
   const parts = ["{\\info"]
 
@@ -469,7 +469,7 @@ type RTFDocumentStatistics = {
 }
 
 /** Generate document statistics based on content */
-function computeStatistics(model: RTFDocumentModel): Partial<RTFDocumentStatistics> {
+function computeStatistics(model: RichTextDocumentModel): Partial<RTFDocumentStatistics> {
   let pageCount = 1
   let wordCount = 0
   let charCount = 0

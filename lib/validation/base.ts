@@ -1,5 +1,5 @@
-import { RTFDocumentModel } from "lib/document"
-import { RTFBorder, RTFBorders, RTFColumnBreakElement, RTFElement, RTFRect, RTFShading, RTFSize } from "lib/types"
+import { RichTextDocumentModel } from "../document"
+import { RTFBorder, RTFBorders, RTFColumnBreakElement, RTFElement, RTFRect, RTFShading, RTFSize } from "../types"
 
 import { validateParagraph } from "./paragraph"
 import { validateTable } from "./table"
@@ -41,7 +41,7 @@ export function validateRTFRect(rect: Partial<RTFRect> | undefined, fieldName: s
 /**
  * Validate RTF border object
  */
-export function validateRTFBorder(model: RTFDocumentModel, border: Partial<RTFBorder> | undefined, fieldName: string): void {
+export function validateRTFBorder(model: RichTextDocumentModel, border: Partial<RTFBorder> | undefined, fieldName: string): void {
   if (border) {
     // Validate border width
     validateRTFSize(border.width, `${fieldName}.width`, true)
@@ -59,7 +59,7 @@ export function validateRTFBorder(model: RTFDocumentModel, border: Partial<RTFBo
 /**
  * Validate RTF borders object
  */
-export function validateRTFBorders(model: RTFDocumentModel, borders: Partial<RTFBorders> | undefined, fieldName: string): void {
+export function validateRTFBorders(model: RichTextDocumentModel, borders: Partial<RTFBorders> | undefined, fieldName: string): void {
   if (borders) {
     validateRTFBorder(model, borders.top, `${fieldName}.top`)
     validateRTFBorder(model, borders.right, `${fieldName}.right`)
@@ -71,7 +71,7 @@ export function validateRTFBorders(model: RTFDocumentModel, borders: Partial<RTF
 /**
  * Validate RTF shading object
  */
-export function validateRTFShading(model: RTFDocumentModel, shading: Partial<RTFShading> | undefined): void {
+export function validateRTFShading(model: RichTextDocumentModel, shading: Partial<RTFShading> | undefined): void {
   if (shading) {
     // Validate pattern (0-10000 representing hundredths of percent)
     if (shading.ratio !== undefined && (shading.ratio < 0.0 || shading.ratio > 1.0)) {
@@ -92,14 +92,14 @@ export function validateRTFShading(model: RTFDocumentModel, shading: Partial<RTF
 /**
  * Validate RTFContent array
  */
-export function validateElements(model: RTFDocumentModel, elements: (RTFElement | RTFColumnBreakElement)[] = []): void {
+export function validateElements(model: RichTextDocumentModel, elements: (RTFElement | RTFColumnBreakElement)[] = []): void {
   elements.forEach((element) => validateElement(model, element))
 }
 
 /**
  * Validate RTFContent item
  */
-export function validateElement(model: RTFDocumentModel, element: RTFElement | RTFColumnBreakElement): void {
+export function validateElement(model: RichTextDocumentModel, element: RTFElement | RTFColumnBreakElement): void {
   // Validate based on content type
   switch (element.type) {
     case "columnBreak":

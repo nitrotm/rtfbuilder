@@ -1,12 +1,12 @@
-import { RTFDocumentModel, DEFAULT_PARAGRAPH_STYLE_ALIAS } from "lib/document"
-import { RTFCharacterFormatting, RTFParagraphElement, RTFParagraphFlag, RTFParagraphFormatting } from "lib/types"
-import { pt, toTwips } from "lib/utils"
+import { RichTextDocumentModel, DEFAULT_PARAGRAPH_STYLE_ALIAS } from "../document"
+import { RTFCharacterFormatting, RTFParagraphElement, RTFParagraphFlag, RTFParagraphFormatting } from "../types"
+import { pt, toTwips } from "../utils"
 
 import { generateBorderStyle, generateShadingPattern, SectionGeometry } from "./base"
 import { generateCharacter, generateCharacterFormatting } from "./character"
 
 /** Generate paragraph formatting control words */
-export function generateParagraphFormatting(model: RTFDocumentModel, formatting: Partial<RTFParagraphFormatting> = {}): string {
+export function generateParagraphFormatting(model: RichTextDocumentModel, formatting: Partial<RTFParagraphFormatting> = {}): string {
   const parts: string[] = []
 
   // Paragraph alignment
@@ -97,7 +97,7 @@ export function generateParagraphFormatting(model: RTFDocumentModel, formatting:
 }
 
 /** Generate a paragraph element */
-export function generateParagraph(model: RTFDocumentModel, geometry: SectionGeometry, element: RTFParagraphElement): string {
+export function generateParagraph(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFParagraphElement): string {
   const parts: string[] = []
   let needSpace: boolean = true
   let formatting = element.formatting

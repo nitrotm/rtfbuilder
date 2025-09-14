@@ -23,10 +23,10 @@ declare global {
       "dcterms:created": { "xsi:type"?: string; children?: any }
       "dcterms:modified": { "xsi:type"?: string; children?: any }
 
-      // "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+      // "http://purl.oclc.org/ooxml/wordprocessingml/main"
       "w:document": {
-        "xmlns:w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-        "xmlns:r"?: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main"
+        "xmlns:r"?: "http://purl.oclc.org/ooxml/officeDocument/relationships"
         children?: any
       }
       "w:body": { children?: any }
@@ -36,21 +36,22 @@ declare global {
       "w:rPr": { children?: any }
       "w:t": { "xml:space"?: string; children?: any }
       "w:jc": { "w:val"?: string }
-      "w:spacing": { "w:before"?: string; "w:after"?: string; "w:line"?: string; "w:lineRule"?: string }
-      "w:ind": { "w:left"?: string; "w:right"?: string; "w:firstLine"?: string }
+      "w:spacing": { "w:before"?: number; "w:after"?: number; "w:line"?: number; "w:lineRule"?: string }
+      "w:ind": { "w:start"?: number; "w:end"?: number; "w:firstLine"?: number; "w:hanging"?: number }
       "w:pageBreakBefore": {}
+      "w:hyphen": {}
       "w:b": {}
       "w:i": {}
       "w:u": { "w:val"?: string }
       "w:color": { "w:val"?: string }
-      "w:sz": { "w:val"?: string }
-      "w:szCs": { "w:val"?: string }
+      "w:sz": { "w:val"?: number }
+      "w:szCs": { "w:val"?: number }
       "w:rFonts": { "w:ascii"?: string; "w:hAnsi"?: string }
       "w:br": { "w:type"?: string }
       "w:tab": {}
       "w:sectPr": { children?: any }
-      "w:pgSz": { "w:w"?: string; "w:h"?: string }
-      "w:pgMar": { "w:top"?: string; "w:right"?: string; "w:bottom"?: string; "w:left"?: string; "w:header"?: string; "w:footer"?: string; "w:gutter"?: string }
+      "w:pgSz": { "w:w"?: number; "w:h"?: number }
+      "w:pgMar": { "w:top"?: number; "w:right"?: number; "w:bottom"?: number; "w:left"?: number; "w:header"?: number; "w:footer"?: number; "w:gutter"?: number }
 
       // Tables
       "w:tbl": { children?: any }
@@ -58,41 +59,40 @@ declare global {
       "w:tr": { children?: any }
       "w:tc": { children?: any }
       "w:tcPr": { children?: any }
-      "w:tblW": { "w:type"?: string; "w:w"?: string }
-      "w:tcW": { "w:type"?: string; "w:w"?: string }
-      "w:gridSpan": { "w:val"?: string }
+      "w:tblW": { "w:type"?: string; "w:w"?: number }
+      "w:tcW": { "w:type"?: string; "w:w"?: number }
+      "w:gridSpan": { "w:val"?: number }
       "w:vMerge": { "w:val"?: string }
       "w:hMerge": { "w:val"?: string }
       "w:tblGrid": { children?: any }
-      "w:gridCol": { "w:w"?: string }
+      "w:gridCol": { "w:w"?: number }
       "w:trPr": { children?: any }
-      "w:trHeight": { "w:val"?: string; "w:hRule"?: string }
+      "w:trHeight": { "w:val"?: number; "w:hRule"?: string }
 
       // Styles
-      "w:styles": { "xmlns:w"?: string; children?: any }
+      "w:styles": { "xmlns:w"?: "http://purl.oclc.org/ooxml/wordprocessingml/main"; children?: any }
       "w:style": { "w:type"?: string; "w:styleId"?: string; children?: any }
       "w:name": { "w:val"?: string }
       "w:qFormat": {}
 
       // Settings
-      "w:settings": { "xmlns:w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"; children?: any }
-      "w:zoom": { "w:percent": string }
+      "w:settings": { "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main"; children?: any }
       "w:view": { "w:val": string }
-      "w:zoomPercent": { "w:val": string }
-      "w:defaultTabStop": { "w:val": string }
+      "w:zoom": { "w:val": "none" | "fullPage" | "bestFit" | "textFit"; "w:percent": string }
+      "w:defaultTabStop": { "w:val": number }
       "w:noWidowControl": {}
-      "w:autoHyphenation": { "w:val": string }
-      "w:consecutiveHyphenLimit": { "w:val": string }
-      "w:hyphenationZone": { "w:val": string }
-      "w:contextualSpacing": { "w:val": string }
-      "w:doNotHyphenateCaps": { "w:val": string }
+      "w:autoHyphenation": {}
+      "w:consecutiveHyphenLimit": { "w:val": number }
+      "w:hyphenationZone": { "w:val": number }
+      "w:contextualSpacing": {}
+      "w:doNotHyphenateCaps": {}
       "w:compat": { children?: any }
       "w:compatSetting": { "w:name": string; "w:uri": string; "w:val": string }
 
       // Font table
       "w:fonts": {
-        "xmlns:w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-        "xmlns:r"?: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main"
+        "xmlns:r"?: "http://purl.oclc.org/ooxml/officeDocument/relationships"
         children?: any
       }
       "w:font": { "w:name"?: string; children?: any }

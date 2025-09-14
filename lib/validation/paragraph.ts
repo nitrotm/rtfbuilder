@@ -1,5 +1,5 @@
-import { RTFDocumentModel } from "lib/document"
-import { RTFParagraphElement, RTFParagraphFormatting } from "lib/types"
+import { RichTextDocumentModel } from "../document"
+import { RTFParagraphElement, RTFParagraphFormatting } from "../types"
 
 import { validateRTFBorders, validateRTFShading, validateRTFSize } from "./base"
 import { validateCharacter } from "./character"
@@ -7,7 +7,7 @@ import { validateCharacter } from "./character"
 /**
  * Validate paragraph formatting properties
  */
-export function validateParagraphFormatting(model: RTFDocumentModel, formatting: Partial<RTFParagraphFormatting> = {}): void {
+export function validateParagraphFormatting(model: RichTextDocumentModel, formatting: Partial<RTFParagraphFormatting> = {}): void {
   // Validate style alias
   if (formatting.styleAlias !== undefined && !model.styleRegistry.has(formatting.styleAlias)) {
     throw new Error(`Style "${formatting.styleAlias}" not found.`)
@@ -37,7 +37,7 @@ export function validateParagraphFormatting(model: RTFDocumentModel, formatting:
 /**
  * Validate paragraph
  */
-export function validateParagraph(model: RTFDocumentModel, element: RTFParagraphElement): void {
+export function validateParagraph(model: RichTextDocumentModel, element: RTFParagraphElement): void {
   // Validate paragraph formatting
   validateParagraphFormatting(model, element.formatting)
 

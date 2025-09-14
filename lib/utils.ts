@@ -138,6 +138,19 @@ type RTFBinarySource = File | Blob | ReadableStream<Uint8Array<ArrayBuffer>>
 type RTFImageSource = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas
 
 /**
+ * Reads base64 data and returns it as a Uint8Array
+ */
+export function readBase64(source: string): Uint8Array<ArrayBuffer> {
+  const data = atob(source)
+  const buffer = new Uint8Array(data.length)
+
+  for (let i = 0; i < data.length; i++) {
+    buffer[i] = data.charCodeAt(i)
+  }
+  return buffer
+}
+
+/**
  * Reads binary data from various sources and returns it as a Uint8Array
  */
 export async function readBinary(source: RTFBinarySource): Promise<Uint8Array<ArrayBuffer>> {

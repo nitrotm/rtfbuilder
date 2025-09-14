@@ -1,11 +1,11 @@
-import { RTFDocumentModel } from "lib/document"
-import { RTFSection, RTFSectionFormatting } from "lib/types"
-import { toTwips } from "lib/utils"
+import { RichTextDocumentModel } from "../document"
+import { RTFSection, RTFSectionFormatting } from "../types"
+import { toTwips } from "../utils"
 
 import { generateElements, SectionGeometry } from "./base"
 
 /** Generate section formatting control words */
-export function generateSectionFormatting(model: RTFDocumentModel, formatting: Partial<RTFSectionFormatting> = {}): [string, SectionGeometry] {
+export function generateSectionFormatting(model: RichTextDocumentModel, formatting: Partial<RTFSectionFormatting> = {}): [string, SectionGeometry] {
   const parts: string[] = []
 
   // Section break type
@@ -117,7 +117,7 @@ export function generateSectionFormatting(model: RTFDocumentModel, formatting: P
 }
 
 /** Generate a document section */
-export function generateSection(model: RTFDocumentModel, section: RTFSection): string {
+export function generateSection(model: RichTextDocumentModel, section: RTFSection): string {
   const parts: string[] = []
   const formatting = section.formatting
 

@@ -1,5 +1,6 @@
-import { DocumentBuilder } from "."
 import { SectionBuilder } from "./section"
+
+import { RichTextDocumentBuilder } from "."
 
 export type SpecialContent = "pageBreak" | "lineBreak" | "tab" | "nonBreakingSpace" | "nonBreakingHyphen" | "optionalHyphen" | "pageNumber" | "date" | "time"
 
@@ -14,7 +15,7 @@ export abstract class RTFBuilder<T> {
     }
     return this._container
   }
-  get document(): DocumentBuilder {
+  get document(): RichTextDocumentBuilder {
     return this.container.document
   }
   get section(): SectionBuilder {

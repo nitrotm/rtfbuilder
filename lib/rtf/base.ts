@@ -1,6 +1,6 @@
-import { RTFDocumentModel } from "lib/document"
-import { RTFBorder, RTFColumnBreakElement, RTFElement, RTFShadingPattern } from "lib/types"
-import { toTwips } from "lib/utils"
+import { RichTextDocumentModel } from "../document"
+import { RTFBorder, RTFColumnBreakElement, RTFElement, RTFShadingPattern } from "../types"
+import { toTwips } from "../utils"
 
 import { generateParagraph } from "./paragraph"
 import { generateTable } from "./table"
@@ -44,7 +44,7 @@ export function generateShadingPattern(pattern: RTFShadingPattern): string {
 }
 
 /** Generate border style control words */
-export function generateBorderStyle(model: RTFDocumentModel, border: Partial<RTFBorder>): string {
+export function generateBorderStyle(model: RichTextDocumentModel, border: Partial<RTFBorder>): string {
   const parts: string[] = []
 
   // Border style
@@ -80,7 +80,7 @@ export type SectionGeometry = {
 
 /** Generate multiple elements */
 export function generateElements(
-  model: RTFDocumentModel,
+  model: RichTextDocumentModel,
   geometry: SectionGeometry,
   elements: (RTFElement | RTFColumnBreakElement)[] = [],
   separator: string = "",
@@ -101,7 +101,7 @@ export function generateElements(
 }
 
 /** Generate a single element */
-export function generateElement(model: RTFDocumentModel, geometry: SectionGeometry, element: RTFElement | RTFColumnBreakElement): string {
+export function generateElement(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFElement | RTFColumnBreakElement): string {
   switch (element.type) {
     case "columnBreak":
       return "\\column"

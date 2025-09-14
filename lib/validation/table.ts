@@ -1,12 +1,12 @@
-import { RTFDocumentModel } from "lib/document"
-import { RTFTableCell, RTFTableCellFormatting, RTFTableElement, RTFTableFormatting, RTFTableRow, RTFTableRowFormatting } from "lib/types"
+import { RichTextDocumentModel } from "../document"
+import { RTFTableCell, RTFTableCellFormatting, RTFTableElement, RTFTableFormatting, RTFTableRow, RTFTableRowFormatting } from "../types"
 
 import { validateElements, validateRTFBorder, validateRTFRect, validateRTFShading, validateRTFSize } from "./base"
 
 /**
  * Validate table formatting properties
  */
-export function validateTableFormatting(model: RTFDocumentModel, formatting: Partial<RTFTableFormatting> = {}): void {
+export function validateTableFormatting(model: RichTextDocumentModel, formatting: Partial<RTFTableFormatting> = {}): void {
   // Validate dimensions
   validateRTFSize(formatting.width, "width")
   validateRTFSize(formatting.leftIndent, "leftIndent", true, true)
@@ -29,7 +29,7 @@ export function validateTableFormatting(model: RTFDocumentModel, formatting: Par
 /**
  * Validate table row formatting properties
  */
-export function validateTableRowFormatting(model: RTFDocumentModel, formatting: Partial<RTFTableRowFormatting> = {}): void {
+export function validateTableRowFormatting(model: RichTextDocumentModel, formatting: Partial<RTFTableRowFormatting> = {}): void {
   // Validate row height (can be negative for exact height)
   validateRTFSize(formatting.height, "height", true, true)
 
@@ -52,7 +52,7 @@ export function validateTableRowFormatting(model: RTFDocumentModel, formatting: 
 /**
  * Validate table cell formatting properties
  */
-export function validateTableCellFormatting(model: RTFDocumentModel, formatting: Partial<RTFTableCellFormatting> = {}): void {
+export function validateTableCellFormatting(model: RichTextDocumentModel, formatting: Partial<RTFTableCellFormatting> = {}): void {
   // Validate cell borders
   if (formatting.borders) {
     validateRTFBorder(model, formatting.borders.top, "cell.borders.top")
@@ -94,7 +94,7 @@ export function validateTableCellFormatting(model: RTFDocumentModel, formatting:
 /**
  * Validate table
  */
-export function validateTable(model: RTFDocumentModel, content: RTFTableElement): void {
+export function validateTable(model: RichTextDocumentModel, content: RTFTableElement): void {
   // Validate table formatting
   validateTableFormatting(model, content.formatting)
 
@@ -113,7 +113,7 @@ export function validateTable(model: RTFDocumentModel, content: RTFTableElement)
 /**
  * Validate table row
  */
-export function validateTableRow(model: RTFDocumentModel, row: RTFTableRow): void {
+export function validateTableRow(model: RichTextDocumentModel, row: RTFTableRow): void {
   // Validate row formatting
   validateTableRowFormatting(model, row.formatting)
 
@@ -124,7 +124,7 @@ export function validateTableRow(model: RTFDocumentModel, row: RTFTableRow): voi
 /**
  * Validate table cell
  */
-export function validateTableCell(model: RTFDocumentModel, cell: RTFTableCell): void {
+export function validateTableCell(model: RichTextDocumentModel, cell: RTFTableCell): void {
   // Validate cell formatting
   if (cell.formatting) {
     validateTableCellFormatting(model, cell.formatting)

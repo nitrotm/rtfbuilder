@@ -9,10 +9,10 @@ import {
   RTFSection,
   RTFSectionFormatting,
   RTFSize,
-} from "lib/types"
-import { pt, toTwips } from "lib/utils"
+} from "../types"
+import { pt, toTwips } from "../utils"
 
-import { DocumentBuilder } from "."
+import { RichTextDocumentBuilder } from "."
 import { RTFBuilder, SpecialContent } from "./base"
 import { ParagraphBuilder } from "./paragraph"
 import { TableBuilder } from "./table"
@@ -45,7 +45,7 @@ class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
     super(null)
   }
 
-  get document(): DocumentBuilder {
+  get document(): RichTextDocumentBuilder {
     return this.section.document
   }
   get section(): SectionBuilder {
@@ -212,7 +212,7 @@ export class SectionBuilder {
   readonly evenFooter: SectionContentBuilder = new SectionContentBuilder(this)
   readonly firstFooter: SectionContentBuilder = new SectionContentBuilder(this)
 
-  constructor(readonly document: DocumentBuilder) {}
+  constructor(readonly document: RichTextDocumentBuilder) {}
 
   get empty(): boolean {
     return !(

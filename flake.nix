@@ -47,6 +47,7 @@
               packages = with pkgs; [
                 curl
                 gitFull
+                libxml2
                 nodejs
                 nodePackages.prettier
                 xmlformat
@@ -66,12 +67,46 @@
                 javascript.enable = true;
               };
               scripts = {
+                run-demo.exec = ''
+                  set -eou pipefail
+
+                  mkdir -p "$DEVENV_ROOT/demo/outputs/"
+
+                  echo "$1:"
+                  tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$1" "$DEVENV_ROOT/demo/outputs/$1.docx"
+                  tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$1" "$DEVENV_ROOT/demo/outputs/$1.rtf"
+                '';
                 run-demos.exec = ''
                   set -eou pipefail
 
-                  for i in demo/*.ts; do
-                    tsx $i demo/$(basename $i .ts).rtf
+                  mkdir -p "$DEVENV_ROOT/demo/outputs/"
+                  for i in "$DEVENV_ROOT/demo/examples/"*.ts; do
+                    run-demo "$(basename $i .ts)"
+                    tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$(basename $i .ts)" "$DEVENV_ROOT/demo/outputs/$(basename $i .ts).docx"
+                    tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$(basename $i .ts)" "$DEVENV_ROOT/demo/outputs/$(basename $i .ts).rtf"
+                    echo
                   done
+                '';
+                validate-docx.exec = ''
+                  set -eou pipefail
+
+                  xml_validation() {
+                    echo -n "$2:"
+                    unzip -p "$1" "$2" | \
+                      xmllint --format - | \
+                      xmllint --schema "$3" --noout - || \
+                      (unzip -p "$1" "$2" | xmllint --format - | cat -n ; exit 1)
+                  }
+
+                  xml_validation "$1" "\\[Content_Types\\].xml" "$DEVENV_ROOT/schema/ooxml/opc-contentTypes.xsd"
+                  xml_validation "$1" docProps/core.xml "$DEVENV_ROOT/schema/ooxml/opc-coreProperties.xsd"
+                  xml_validation "$1" docProps/app.xml "$DEVENV_ROOT/schema/ooxml/shared-documentPropertiesExtended.xsd"
+                  xml_validation "$1" _rels/.rels "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
+                  xml_validation "$1" word/_rels/document.xml.rels "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
+                  xml_validation "$1" word/document.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
+                  xml_validation "$1" word/styles.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
+                  xml_validation "$1" word/settings.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
+                  xml_validation "$1" word/fontTable.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
                 '';
               };
             }

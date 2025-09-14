@@ -1,12 +1,12 @@
-import { RTFDocumentModel } from "lib/document"
-import { RTFSection, RTFSectionFormatting } from "lib/types"
+import { RichTextDocumentModel } from "../document"
+import { RTFSection, RTFSectionFormatting } from "../types"
 
 import { validateElements, validateRTFRect, validateRTFSize } from "./base"
 
 /**
  * Validate section formatting properties
  */
-export function validateSectionFormatting(model: RTFDocumentModel, formatting: Partial<RTFSectionFormatting> = {}): void {
+export function validateSectionFormatting(model: RichTextDocumentModel, formatting: Partial<RTFSectionFormatting> = {}): void {
   // Validate style alias
   if (formatting.styleAlias !== undefined && !model.styleRegistry.has(formatting.styleAlias)) {
     throw new Error(`Section style "${formatting.styleAlias}" not found.`)
@@ -47,7 +47,7 @@ export function validateSectionFormatting(model: RTFDocumentModel, formatting: P
 /**
  * Validate individual RTFSection
  */
-export function validateSection(model: RTFDocumentModel, section: Partial<RTFSection> = {}): void {
+export function validateSection(model: RichTextDocumentModel, section: Partial<RTFSection> = {}): void {
   // Validate section formatting
   if (section.formatting) {
     validateSectionFormatting(model, section.formatting)

@@ -1,47 +1,20 @@
-import * as fs from "fs"
-import { DocumentBuilder, inch, pt, RTFPictureData } from "../lib"
-import { RTFDocument } from "../lib/rtf"
-import { RTF_DOCUMENT_VALIDATOR } from "../lib/validation"
+import { RichTextDocumentBuilder, inch, pt, RTFPictureData, readBase64 } from "../../lib"
 
-// Parse command line arguments
-const args = process.argv.slice(2)
-
-// Check for help flag or missing argument
-if (args.includes("--help") || args.includes("-h") || args.length === 0) {
-  console.log("Usage: picture.ts <output.rtf> [--validate]")
-  console.log("  output.rtf: Path to output RTF file (required)")
-  process.exit(args.length === 0 ? 1 : 0)
-}
-
-const outputFile = args[0]
-const validator = args.includes("--validate") ? RTF_DOCUMENT_VALIDATOR : undefined
-
-// Sample base64 PNG
-const base64PNG =
-  "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAY0lEQVQY032PMRKEMAwDV5CWgrs/8P/30SxFcsRHgceFJVkaO/JWDYjIcy3E72cBxJCnhqxr63hsRAAzwva9FYuY3zA5UCDhlu3ythW3M5xuP8/hTk28T0uWCUrNX6x9HP4zF5CFNasivtrxAAAAAElFTkSuQmCC"
-const pictureData: RTFPictureData = {
-  format: "png",
-  data: base64ToUint8Array(base64PNG),
-  width: 10,
-  height: 10,
-}
-
-// Convert base64 to Uint8Array
-function base64ToUint8Array(base64: string): Uint8Array {
-  const binaryString = atob(base64)
-  const bytes = new Uint8Array(binaryString.length)
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i)
-  }
-  return bytes
-}
-
-// Create document
-const builder = new DocumentBuilder()
+const builder = new RichTextDocumentBuilder()
 
 // Add some colors
 builder.withColor("blue", { red: 0, green: 0, blue: 255 })
 builder.withColor("darkgray", { red: 128, green: 128, blue: 128 })
+
+// Sample png
+const pictureData: RTFPictureData = {
+  format: "png",
+  data: readBase64(
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAY0lEQVQY032PMRKEMAwDV5CWgrs/8P/30SxFcsRHgceFJVkaO/JWDYjIcy3E72cBxJCnhqxr63hsRAAzwva9FYuY3zA5UCDhlu3ythW3M5xuP8/hTk28T0uWCUrNX6x9HP4zF5CFNasivtrxAAAAAElFTkSuQmCC"
+  ),
+  width: 10,
+  height: 10,
+}
 
 // Create a new section
 builder.withSection((section) => {
@@ -185,13 +158,4 @@ builder.withSection((section) => {
     })
 })
 
-// Generate RTF content
-const content = builder.buildInto(new RTFDocument({ validator })).render()
-
-fs.writeFile(outputFile, content, (error) => {
-  if (error) {
-    console.error(error)
-  } else {
-    console.log(`Created ${outputFile}`)
-  }
-})
+export default builder

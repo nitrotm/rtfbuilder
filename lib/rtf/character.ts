@@ -1,11 +1,11 @@
-import { RTFDocumentModel, FOOTNOTE_BACKGROUND_COLOR_ALIAS, FOOTNOTE_COLOR_ALIAS } from "lib/document"
-import { RTFCharacterElement, RTFCharacterFlag, RTFCharacterFormatting, RTFFootnoteElement, RTFPictureElement, RTFPictureType } from "lib/types"
-import { toHalfPoints, toTwips } from "lib/utils"
+import { RichTextDocumentModel, FOOTNOTE_BACKGROUND_COLOR_ALIAS, FOOTNOTE_COLOR_ALIAS } from "../document"
+import { RTFCharacterElement, RTFCharacterFlag, RTFCharacterFormatting, RTFFootnoteElement, RTFPictureElement, RTFPictureType } from "../types"
+import { toHalfPoints, toTwips } from "../utils"
 
 import { escapeRTFText, generateElement, SectionGeometry } from "./base"
 
 /** Generate character formatting control words */
-export function generateCharacterFormatting(model: RTFDocumentModel, formatting: Partial<RTFCharacterFormatting> = {}): string {
+export function generateCharacterFormatting(model: RichTextDocumentModel, formatting: Partial<RTFCharacterFormatting> = {}): string {
   const parts: string[] = []
 
   // Character style
@@ -56,7 +56,7 @@ export function generateCharacterFormatting(model: RTFDocumentModel, formatting:
 }
 
 /** Generate a character element */
-export function generateCharacter(model: RTFDocumentModel, geometry: SectionGeometry, element: RTFCharacterElement): string {
+export function generateCharacter(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFCharacterElement): string {
   const parts: string[] = []
   let needSpace: boolean = false
   let formatting = element.formatting
@@ -214,7 +214,7 @@ export function generateCharacter(model: RTFDocumentModel, geometry: SectionGeom
 }
 
 /** Generate footnote content */
-export function generateFootnoteContent(model: RTFDocumentModel, geometry: SectionGeometry, item: RTFFootnoteElement): string {
+export function generateFootnoteContent(model: RichTextDocumentModel, geometry: SectionGeometry, item: RTFFootnoteElement): string {
   const parts: string[] = []
 
   // Footnote preamble
@@ -249,7 +249,7 @@ export function generateFootnoteContent(model: RTFDocumentModel, geometry: Secti
 }
 
 /** Generate a picture element */
-export function generatePicture(_model: RTFDocumentModel, _geometry: SectionGeometry, element: RTFPictureElement): string {
+export function generatePicture(_model: RichTextDocumentModel, _geometry: SectionGeometry, element: RTFPictureElement): string {
   const picture = element.picture
   const formatting = element.formatting
   const parts: string[] = []

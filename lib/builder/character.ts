@@ -7,7 +7,7 @@ import {
   RTFPictureData,
   RTFPictureFormatting,
   RTFSize,
-} from "lib/types"
+} from "../types"
 
 import { RTFBuilder, SpecialContent } from "./base"
 import { FootnoteBuilder } from "./footnote"

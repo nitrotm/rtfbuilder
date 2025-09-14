@@ -1,4 +1,4 @@
-import { RTFDocumentModel } from "lib/document"
+import { RichTextDocumentModel } from "../document"
 import {
   RTFColor,
   RTFDocumentInfo,
@@ -10,8 +10,8 @@ import {
   RTFStyle,
   RTFTypographySettings,
   RTFViewSettings,
-} from "lib/types"
-import { toTwips } from "lib/utils"
+} from "../types"
+import { toTwips } from "../utils"
 
 import { INVALID_CTRL_CHARS, INVALID_NAME_CHARS, validateRTFRect, validateRTFSize } from "./base"
 import { validateCharacterFormatting } from "./character"
@@ -21,7 +21,7 @@ import { validateSectionFormatting } from "./section"
 /**
  * Validate document info
  */
-export function validateDocumentInfo(_model: RTFDocumentModel, value: Partial<RTFDocumentInfo>): void {
+export function validateDocumentInfo(_model: RichTextDocumentModel, value: Partial<RTFDocumentInfo>): void {
   // Check for reasonable length limits (based on common RTF reader limits)
   const maxLengths: Record<keyof RTFDocumentInfo, number> = {
     title: 255,
@@ -78,7 +78,7 @@ export function validateDocumentInfo(_model: RTFDocumentModel, value: Partial<RT
 /**
  * Validate page setup
  */
-export function validatePageSetup(_model: RTFDocumentModel, value: Partial<RTFPageSetup>): void {
+export function validatePageSetup(_model: RichTextDocumentModel, value: Partial<RTFPageSetup>): void {
   validateRTFSize(value.paperWidth, "paperWidth")
   validateRTFSize(value.paperHeight, "paperHeight")
   validateRTFRect(value.margin, "margin")
@@ -125,7 +125,7 @@ export function validatePageSetup(_model: RTFDocumentModel, value: Partial<RTFPa
 /**
  * Validate view settings
  */
-export function validateViewSettings(_model: RTFDocumentModel, value: Partial<RTFViewSettings>): void {
+export function validateViewSettings(_model: RichTextDocumentModel, value: Partial<RTFViewSettings>): void {
   // Validate specific fields based on RTF specification
   if (value.viewScale !== undefined) {
     // View zoom percentage - reasonable range for document viewing
@@ -155,7 +155,7 @@ export function validateViewSettings(_model: RTFDocumentModel, value: Partial<RT
 /**
  * Validate typography settings
  */
-export function validateTypography(_model: RTFDocumentModel, value: Partial<RTFTypographySettings>): void {
+export function validateTypography(_model: RichTextDocumentModel, value: Partial<RTFTypographySettings>): void {
   validateRTFSize(value.hyphenationHotZone, "hyphenationHotZone", true)
   validateRTFSize(value.defaultTabWidth, "defaultTabWidth")
 
@@ -226,7 +226,7 @@ export function validateTypography(_model: RTFDocumentModel, value: Partial<RTFT
 /**
  * Validate document variable
  */
-export function validateVariableEntry(_model: RTFDocumentModel, name: string, value: string): void {
+export function validateVariableEntry(_model: RichTextDocumentModel, name: string, value: string): void {
   // Length validation
   if (name.length === 0 || name.length > 255) {
     throw new Error(`Variable name cannot be empty or exceed 255 characters, got ${name.length}`)
@@ -275,7 +275,7 @@ export function validateVariableEntry(_model: RTFDocumentModel, name: string, va
 /**
  * Validate color entry
  */
-export function validateColorEntry(_model: RTFDocumentModel, _alias: string, value: RTFColor): void {
+export function validateColorEntry(_model: RichTextDocumentModel, _alias: string, value: RTFColor): void {
   // Range validation (RTF specification: 0-255 for 8-bit RGB)
   if (value.red < 0 || value.red > 255 || value.green < 0 || value.green > 255 || value.blue < 0 || value.blue > 255) {
     throw new Error(`Color component must be between 0-255, got red=${value.red} green=${value.green} blue=${value.blue}`)
@@ -285,7 +285,7 @@ export function validateColorEntry(_model: RTFDocumentModel, _alias: string, val
 /**
  * Validate font entry
  */
-export function validateFontEntry(_model: RTFDocumentModel, _alias: string, value: Partial<RTFFont>): void {
+export function validateFontEntry(_model: RichTextDocumentModel, _alias: string, value: Partial<RTFFont>): void {
   // Required name field validation
   if (!value.name || value.name.length === 0 || value.name.length > 64) {
     throw new Error(`Font name cannot be empty string or exceed 64 characters, got ${(value.name || "").length}`)
@@ -322,7 +322,7 @@ export function validateFontEntry(_model: RTFDocumentModel, _alias: string, valu
 /**
  * Validate style entry
  */
-export function validateStyleEntry(model: RTFDocumentModel, _alias: string, value: Partial<RTFStyle>, pendingStyleAliases: string[]): void {
+export function validateStyleEntry(model: RichTextDocumentModel, _alias: string, value: Partial<RTFStyle>, pendingStyleAliases: string[]): void {
   // Style name validation (optional field)
   if (value.name !== undefined) {
     if (value.name.length === 0 || value.name.length > 253) {
@@ -360,7 +360,7 @@ export function validateStyleEntry(model: RTFDocumentModel, _alias: string, valu
 /**
  * Validate list entry
  */
-export function validateListEntry(model: RTFDocumentModel, alias: string, value: Partial<RTFList>): void {
+export function validateListEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFList>): void {
   // Critical validation: List must have at least one level defined
   if (!value.levels || value.levels.length === 0) {
     throw new Error(`List "${alias}" must have at least one level defined`)
@@ -406,7 +406,7 @@ export function validateListEntry(model: RTFDocumentModel, alias: string, value:
 /**
  * Validate list level entry
  */
-export function validateListLevelEntry(_model: RTFDocumentModel, listAlias: string, level: number, value: Partial<RTFListLevel>): void {
+export function validateListLevelEntry(_model: RichTextDocumentModel, listAlias: string, level: number, value: Partial<RTFListLevel>): void {
   // Validate level number range
   if (level < 0 || level > 8) {
     throw new Error(`List level must be between 0-8, got ${level}`)
@@ -503,7 +503,7 @@ export function validateListLevelEntry(_model: RTFDocumentModel, listAlias: stri
 /**
  * Validate list override entry
  */
-export function validateListOverrideEntry(model: RTFDocumentModel, alias: string, value: Partial<RTFListOverride>): void {
+export function validateListOverrideEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFListOverride>): void {
   // Critical validation: List override must reference an existing list
   if (!value.listAlias) {
     throw new Error(`List override "${alias}" must reference a list via listAlias`)

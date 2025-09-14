@@ -1,4 +1,4 @@
-import { AbstractDocument } from "lib/document"
+import { RichTextDocument } from "../document"
 import {
   RTFCharset,
   RTFColor,
@@ -10,11 +10,12 @@ import {
   RTFStyle,
   RTFTypographySettings,
   RTFViewSettings,
-} from "lib/types"
-import { mm, toTwips } from "lib/utils"
+} from "../types"
+import { mm, toTwips } from "../utils"
+
 import { SectionBuilder } from "./section"
 
-export class DocumentBuilder {
+export class RichTextDocumentBuilder {
   // Document metadata and settings
   private _charset: RTFCharset = "ansi"
   private _info: Partial<RTFDocumentInfo> = {}
@@ -186,7 +187,7 @@ export class DocumentBuilder {
     return this
   }
 
-  buildInto<T extends AbstractDocument<unknown>>(document: T): T {
+  buildInto<T extends RichTextDocument<unknown>>(document: T): T {
     document
       .charset(this._charset)
       .info(this._info)

@@ -8,7 +8,7 @@ import {
   RTFListOverride,
   RTFPictureData,
   RTFPictureFormatting,
-} from "lib/types"
+} from "../types"
 
 import { RTFBuilder, SpecialContent } from "./base"
 import { ParagraphBuilder } from "./paragraph"

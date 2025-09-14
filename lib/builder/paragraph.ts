@@ -8,11 +8,11 @@ import {
   RTFPictureFormatting,
   RTFShadingPattern,
   RTFSize,
-} from "lib/types"
+} from "../types"
 
 import { RTFBuilder, SpecialContent } from "./base"
 import { CharacterBuilder } from "./character"
-import { pt } from "lib/utils"
+import { pt } from "../utils"
 
 export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
   private readonly _children: CharacterBuilder[] = []

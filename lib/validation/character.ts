@@ -1,4 +1,4 @@
-import { RTFDocumentModel } from "lib/document"
+import { RichTextDocumentModel } from "../document"
 import {
   RTFCharacterContentElement,
   RTFCharacterElement,
@@ -7,7 +7,7 @@ import {
   RTFHyperlink,
   RTFPictureElement,
   RTFPictureFormatting,
-} from "lib/types"
+} from "../types"
 
 import { validateRTFSize } from "./base"
 import { validateParagraph } from "./paragraph"
@@ -15,7 +15,7 @@ import { validateParagraph } from "./paragraph"
 /**
  * Validate text formatting properties
  */
-export function validateCharacterFormatting(model: RTFDocumentModel, formatting: Partial<RTFCharacterFormatting> = {}): void {
+export function validateCharacterFormatting(model: RichTextDocumentModel, formatting: Partial<RTFCharacterFormatting> = {}): void {
   // Validate style alias
   if (formatting.styleAlias !== undefined && !model.styleRegistry.has(formatting.styleAlias)) {
     throw new Error(`Style "${formatting.styleAlias}" not found.`)
@@ -53,7 +53,7 @@ export function validateCharacterFormatting(model: RTFDocumentModel, formatting:
 /**
  * Validate picture formatting properties
  */
-export function validatePictureFormatting(_model: RTFDocumentModel, formatting: Partial<RTFPictureFormatting> = {}): void {
+export function validatePictureFormatting(_model: RichTextDocumentModel, formatting: Partial<RTFPictureFormatting> = {}): void {
   // Validate display dimensions
   validateRTFSize(formatting.displayWidth, "displayWidth")
   validateRTFSize(formatting.displayHeight, "displayHeight")
@@ -84,7 +84,7 @@ export function validatePictureFormatting(_model: RTFDocumentModel, formatting: 
 /**
  * Validate hyperlink properties
  */
-export function validateHyperlink(_model: RTFDocumentModel, link: RTFHyperlink): void {
+export function validateHyperlink(_model: RichTextDocumentModel, link: RTFHyperlink): void {
   switch (link.type) {
     case "bookmark":
       if (!link.bookmark || link.bookmark.length === 0) {
@@ -128,7 +128,7 @@ export function validateHyperlink(_model: RTFDocumentModel, link: RTFHyperlink):
 /**
  * Validate text
  */
-export function validateCharacter(model: RTFDocumentModel, element: RTFCharacterElement): void {
+export function validateCharacter(model: RichTextDocumentModel, element: RTFCharacterElement): void {
   validateCharacterFormatting(model, element.formatting)
   if (element.bookmarkName !== undefined && element.bookmarkName.length === 0) {
     throw new Error(`Bookmark name cannot be empty`)
@@ -144,7 +144,7 @@ export function validateCharacter(model: RTFDocumentModel, element: RTFCharacter
 /**
  * Validate text content element (items that can appear inside character elements)
  */
-function validateTextContentElement(model: RTFDocumentModel, item: RTFCharacterContentElement): void {
+function validateTextContentElement(model: RichTextDocumentModel, item: RTFCharacterContentElement): void {
   switch (item.type) {
     case "text":
       break
@@ -176,7 +176,7 @@ function validateTextContentElement(model: RTFDocumentModel, item: RTFCharacterC
 /**
  * Validate footnote element
  */
-function validateFootnote(model: RTFDocumentModel, item: RTFFootnoteElement): void {
+function validateFootnote(model: RichTextDocumentModel, item: RTFFootnoteElement): void {
   // Validate custom mark if provided
   if (item.customMark !== undefined && item.customMark.length === 0) {
     throw new Error("Footnote custom mark cannot be empty if provided")
@@ -193,7 +193,7 @@ function validateFootnote(model: RTFDocumentModel, item: RTFFootnoteElement): vo
 /**
  * Validate picture element
  */
-function validatePicture(model: RTFDocumentModel, element: RTFPictureElement): void {
+function validatePicture(model: RichTextDocumentModel, element: RTFPictureElement): void {
   // Validate data
   if (!element.picture.data || element.picture.data.length === 0 || element.picture.width <= 0 || element.picture.height <= 0) {
     throw new Error("Picture cannot be empty and must have positive width and height")

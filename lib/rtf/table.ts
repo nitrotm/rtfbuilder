@@ -1,4 +1,4 @@
-import { RTFDocumentModel } from "lib/document"
+import { RichTextDocumentModel } from "../document"
 import {
   RTFBorders,
   RTFTableBorders,
@@ -8,13 +8,13 @@ import {
   RTFTableRow,
   RTFTableRowFlag,
   RTFTableRowFormatting,
-} from "lib/types"
-import { toTwips } from "lib/utils"
+} from "../types"
+import { toTwips } from "../utils"
 
 import { generateBorderStyle, generateElements, generateShadingPattern, SectionGeometry } from "./base"
 
 /** Generate table cell formatting control words */
-export function generateTableCellFormatting(model: RTFDocumentModel, formatting: Partial<RTFTableCellFormatting>): string {
+export function generateTableCellFormatting(model: RichTextDocumentModel, formatting: Partial<RTFTableCellFormatting>): string {
   const parts: string[] = []
 
   // Cell merging
@@ -68,7 +68,7 @@ export function generateTableCellFormatting(model: RTFDocumentModel, formatting:
 
 /** Generate table row formatting control words */
 export function generateTableRowFormatting(
-  _model: RTFDocumentModel,
+  _model: RichTextDocumentModel,
   tableFormatting: Partial<RTFTableFormatting>,
   formatting: Partial<RTFTableRowFormatting>
 ): string {
@@ -110,13 +110,13 @@ export function generateTableRowFormatting(
 }
 
 /** Table geometry for layout calculations */
-export type TableGeometry = {
+type TableGeometry = {
   containerWidth: number
   columnWidths: number[]
 }
 
 /** Generate a table element */
-export function generateTable(model: RTFDocumentModel, geometry: SectionGeometry, element: RTFTableElement): string {
+export function generateTable(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFTableElement): string {
   const formatting = element.formatting || {}
   const parts: string[] = []
 
@@ -148,7 +148,7 @@ export function generateTable(model: RTFDocumentModel, geometry: SectionGeometry
 
 /** Generate a table row */
 export function generateTableRow(
-  model: RTFDocumentModel,
+  model: RichTextDocumentModel,
   geometry: SectionGeometry,
   tableGeometry: TableGeometry,
   row: RTFTableRow,
@@ -188,8 +188,9 @@ export function generateTableRow(
   })
 
   // Cell content
-  for (const cell of row.cells) {
-    const data = generateElements(model, geometry, cell.content, "", true)
+  for (const [index, _column] of tableGeometry.columnWidths.entries()) {
+    const cell = index < row.cells.length ? row.cells[index] : undefined
+    const data = generateElements(model, geometry, cell?.content || [], "", true)
 
     if (data.length > 0 && !data.startsWith("\\") && !data.startsWith("{")) {
       parts.push(" ")

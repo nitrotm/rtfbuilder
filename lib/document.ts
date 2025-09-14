@@ -1,8 +1,5 @@
-/*!
- * RTFDocument - Complete RTF document state management
- *
- * This class maintains all state necessary to generate RTF documents,
- * designed around the complete RTF specification.
+/**
+ * RichTextDocument - Complete RTF document state management.
  */
 
 import {
@@ -33,18 +30,8 @@ export const DEFAULT_PARAGRAPH_STYLE_ALIAS = "default"
 export const FOOTNOTE_COLOR_ALIAS = "footnotefg"
 export const FOOTNOTE_BACKGROUND_COLOR_ALIAS = "footnotebg"
 
-/** RTF document constructor options */
-export type DocumentOptions = {
-  defaultFont: Partial<RTFFont> // Default font (default: Times New Roman)
-  variables: Record<string, string> // Initial document variables
-  colors: Record<string, RTFColor> // Initial color registry entries
-  fonts: Record<string, Partial<RTFFont>> // Initial font registry entries
-  styles: Record<string, Partial<RTFStyle>> // Initial style registry entries
-  validator: RTFDocumentValidator // Optional validator
-}
-
 /** Internal document model */
-export type RTFDocumentModel = {
+export type RichTextDocumentModel = {
   // Document metadata and settings
   charset: RTFCharset
   info: Partial<RTFDocumentInfo>
@@ -67,24 +54,107 @@ export type RTFDocumentModel = {
 }
 
 /** Interface for document validators */
-export type RTFDocumentValidator = {
-  validateDocumentInfo(model: RTFDocumentModel, value: Partial<RTFDocumentInfo>): void
-  validatePageSetup(model: RTFDocumentModel, value: Partial<RTFPageSetup>): void
-  validateViewSettings(model: RTFDocumentModel, value: Partial<RTFViewSettings>): void
-  validateTypography(model: RTFDocumentModel, value: Partial<RTFTypographySettings>): void
-  validateVariableEntry(model: RTFDocumentModel, name: string, value: string): void
-  validateColorEntry(model: RTFDocumentModel, alias: string, value: RTFColor): void
-  validateFontEntry(model: RTFDocumentModel, alias: string, value: Partial<RTFFont>): void
-  validateStyleEntry(model: RTFDocumentModel, alias: string, value: Partial<RTFStyle>, pendingStyleAliases: string[]): void
-  validateListEntry(model: RTFDocumentModel, alias: string, value: Partial<RTFList>): void
-  validateListOverrideEntry(model: RTFDocumentModel, alias: string, value: Partial<RTFListOverride>): void
-  validateSection(model: RTFDocumentModel, value: Partial<RTFSection>): void
+export type RichTextDocumentValidator = {
+  validateDocumentInfo(model: RichTextDocumentModel, value: Partial<RTFDocumentInfo>): void
+  validatePageSetup(model: RichTextDocumentModel, value: Partial<RTFPageSetup>): void
+  validateViewSettings(model: RichTextDocumentModel, value: Partial<RTFViewSettings>): void
+  validateTypography(model: RichTextDocumentModel, value: Partial<RTFTypographySettings>): void
+  validateVariableEntry(model: RichTextDocumentModel, name: string, value: string): void
+  validateColorEntry(model: RichTextDocumentModel, alias: string, value: RTFColor): void
+  validateFontEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFFont>): void
+  validateStyleEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFStyle>, pendingStyleAliases: string[]): void
+  validateListEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFList>): void
+  validateListOverrideEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFListOverride>): void
+  validateSection(model: RichTextDocumentModel, value: Partial<RTFSection>): void
 }
 
-/** Complete RTF document state management */
-export abstract class AbstractDocument<T> {
+/** RTF document constructor options */
+export type RichTextDocumentOptions = {
+  defaultFont: Partial<RTFFont> // Default font (default: Times New Roman)
+  variables: Record<string, string> // Initial document variables
+  colors: Record<string, RTFColor> // Initial color registry entries
+  fonts: Record<string, Partial<RTFFont>> // Initial font registry entries
+  styles: Record<string, Partial<RTFStyle>> // Initial style registry entries
+  validator: RichTextDocumentValidator // Optional validator
+}
+
+/** RTF document interface */
+export interface RichTextDocument<T> {
+  /**
+   * Render the document to the desired output format
+   */
+  render(): T
+
+  /**
+   * Copy all content and settings from another document
+   */
+  copyFrom(other: RichTextDocument<unknown>): this
+
+  /**
+   * Set document charset
+   */
+  charset(charset: RTFCharset): this
+
+  /**
+   * Set document information properties
+   */
+  info(info: Partial<RTFDocumentInfo>): this
+
+  /**
+   * Set page setup properties
+   */
+  pageSetup(setup: Partial<RTFPageSetup>): this
+
+  /**
+   * Set view settings
+   */
+  viewSettings(settings: Partial<RTFViewSettings>): this
+
+  /**
+   * Set typography settings
+   */
+  typography(settings: Partial<RTFTypographySettings>): this
+
+  /**
+   * Add multiple document variables (fluent interface)
+   */
+  variables(items: Record<string, string>): this
+
+  /**
+   * Add a color to the color table (fluent interface)
+   */
+  colors(items: Record<string, RTFColor>): this
+
+  /**
+   * Add a font to the font table (fluent interface)
+   */
+  fonts(items: Record<string, Partial<RTFFont>>): this
+
+  /**
+   * Add a style to the stylesheet (fluent interface)
+   */
+  styles(items: Record<string, Partial<RTFStyle>>): this
+
+  /**
+   * Register a list with an alias
+   */
+  lists(items: Record<string, Partial<RTFList>>): this
+
+  /**
+   * Register a list override with an alias
+   */
+  listOverrides(items: Record<string, Partial<RTFListOverride>>): this
+
+  /**
+   * Add a new section to the document
+   */
+  sections(...sections: RTFSection[]): this
+}
+
+/** RTF document with state management */
+export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T> {
   // Internal document model
-  protected readonly model: RTFDocumentModel = {
+  protected readonly model: RichTextDocumentModel = {
     charset: "ansi",
     info: {},
     pageSetup: {
@@ -114,10 +184,10 @@ export abstract class AbstractDocument<T> {
   }
 
   // Optional validator
-  private readonly validator?: RTFDocumentValidator
+  private readonly validator?: RichTextDocumentValidator
 
-  /** Create a new RTF document with optional initial settings */
-  constructor(options: Partial<DocumentOptions> = {}) {
+  /** Create a new document with optional initial settings */
+  protected constructor(options: Partial<RichTextDocumentOptions> = {}) {
     // Add default color/font
     const {
       defaultFont = {
@@ -162,7 +232,7 @@ export abstract class AbstractDocument<T> {
   /**
    * Copy all content and settings from another document
    */
-  copyFrom(other: AbstractDocument<unknown>): this {
+  copyFrom(other: AbstractRichTextDocument<unknown>): this {
     // Deep copy all properties directly
     this.model.info = deepCopy(other.model.info)
     this.model.charset = other.model.charset
