@@ -133,24 +133,24 @@ export class RichTextDocumentBuilder {
     return this
   }
 
-  newFont(value: RTFFont): string {
+  newFont(value: Pick<RTFFont, "name" | "family"> | Partial<RTFFont>): string {
     const alias = `f${Object.keys(this._fonts).length + 1}`
 
     this._fonts[alias] = value
     return alias
   }
-  withFont(alias: string, value: RTFFont): this {
+  withFont(alias: string, value: Pick<RTFFont, "name" | "family"> | Partial<RTFFont>): this {
     this._fonts[alias] = value
     return this
   }
 
-  newStyle(value: RTFStyle): string {
+  newStyle(value: Pick<RTFStyle, "type"> | Partial<RTFStyle>): string {
     const alias = `s${Object.keys(this._styles).length + 1}`
 
     this._styles[alias] = value
     return alias
   }
-  withStyle(alias: string, value: RTFStyle): this {
+  withStyle(alias: string, value: Pick<RTFStyle, "type"> | Partial<RTFStyle>): this {
     this._styles[alias] = value
     return this
   }

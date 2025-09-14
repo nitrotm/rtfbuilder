@@ -154,7 +154,7 @@ export type RTFFont = {
   family: "roman" | "swiss" | "modern" | "script" | "decor" | "tech" | "nil" // Font family
   charset: number // Font charset code (e.g., 0=ANSI, 1=Default, 2=Symbol, etc.)
   pitch: "fixed" | "variable" | "default" // Font pitch
-  falt?: string // Font alternate name
+  falt: string // Font alternate name
 }
 
 /** List numbering format types */
