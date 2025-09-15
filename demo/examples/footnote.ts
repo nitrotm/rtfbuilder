@@ -17,7 +17,7 @@ builder.withFont("courier", { name: "Courier New", family: "modern" })
 builder.pageSetup({
   footnotePosition: "bottom", // Place footnotes at bottom of page
   footnoteNumbering: "lowercase", // Use lowercase letters (a, b, c) for footnotes
-  endnoteNumbering: "roman-upper", // Use uppercase Roman numerals (I, II, III) for endnotes
+  endnoteNumbering: "upperRoman", // Use uppercase Roman numerals (I, II, III) for endnotes
   footnoteRestart: "continuous", // Continuous numbering throughout document
   footnoteStartNumber: 1,
 })
@@ -95,14 +95,19 @@ builder.withSection((section) => {
     .newChunk()
     .text("Footnotes can contain complex content including line breaks")
     .withFootnote((f) =>
-      f
-        .withText("First line of the footnote.")
-        .withSpecial("lineBreak")
-        .withSpecial("tab")
-        .withText("Second line of the footnote.")
-        .withSpecial("lineBreak")
-        .withSpecial("tab")
-        .withText("Third line with ", { bold: true }, "formatting", {}, ".")
+      f.withText(
+        "First line of the footnote.",
+        { special: "lineBreak" },
+        { special: "tab" },
+        "Second line of the footnote.",
+        { special: "lineBreak" },
+        { special: "tab" },
+        "Third line with ",
+        { bold: true },
+        "formatting",
+        {},
+        "."
+      )
     )
     .text(" and multiple paragraphs.")
 })

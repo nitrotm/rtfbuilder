@@ -1,17 +1,6 @@
 import { RichTextDocumentModel } from "../document"
-import {
-  RTFColor,
-  RTFDocumentInfo,
-  RTFFont,
-  RTFList,
-  RTFListLevel,
-  RTFListOverride,
-  RTFPageSetup,
-  RTFStyle,
-  RTFTypographySettings,
-  RTFViewSettings,
-} from "../types"
-import { toTwips } from "../utils"
+import { RTFColor, RTFDocumentInfo, RTFFont, RTFList, RTFListLevel, RTFPageSetup, RTFStyle, RTFTypographySettings, RTFViewSettings } from "../types"
+import { toTwip } from "../utils"
 
 import { INVALID_CTRL_CHARS, INVALID_NAME_CHARS, validateRTFRect, validateRTFSize } from "./base"
 import { validateCharacterFormatting } from "./character"
@@ -85,13 +74,13 @@ export function validatePageSetup(_model: RichTextDocumentModel, value: Partial<
   validateRTFSize(value.gutter, "gutter", true)
 
   // Validate ranges based on RTF specification and practical limits
-  const paperWidth = toTwips(value.paperWidth)
-  const paperHeight = toTwips(value.paperHeight)
-  const top = toTwips(value.margin?.top)
-  const right = toTwips(value.margin?.right)
-  const bottom = toTwips(value.margin?.bottom)
-  const left = toTwips(value.margin?.left)
-  const gutter = toTwips(value.gutter)
+  const paperWidth = toTwip(value.paperWidth)
+  const paperHeight = toTwip(value.paperHeight)
+  const top = toTwip(value.margin?.top)
+  const right = toTwip(value.margin?.right)
+  const bottom = toTwip(value.margin?.bottom)
+  const left = toTwip(value.margin?.left)
+  const gutter = toTwip(value.gutter)
 
   if (paperWidth < 1440 || paperWidth > 31680) {
     throw new Error(`Paper width must be between 1440 and 31680 twips (1-22 inches), got ${paperWidth}`)
@@ -157,11 +146,11 @@ export function validateViewSettings(_model: RichTextDocumentModel, value: Parti
  */
 export function validateTypography(_model: RichTextDocumentModel, value: Partial<RTFTypographySettings>): void {
   validateRTFSize(value.hyphenationHotZone, "hyphenationHotZone", true)
-  validateRTFSize(value.defaultTabWidth, "defaultTabWidth")
+  validateRTFSize(value.tabWidth, "tabWidth")
 
   // Validate specific fields based on RTF specification
-  const hyphenationHotZone = toTwips(value.hyphenationHotZone)
-  const defaultTabWidth = toTwips(value.defaultTabWidth)
+  const hyphenationHotZone = toTwip(value.hyphenationHotZone)
+  const tabWidth = toTwip(value.tabWidth)
 
   if (value.hyphenationHotZone !== undefined) {
     // Hot zone - reasonable range for hyphenation zone
@@ -180,13 +169,13 @@ export function validateTypography(_model: RichTextDocumentModel, value: Partial
       )
     }
   }
-  if (value.defaultTabWidth !== undefined) {
+  if (value.tabWidth !== undefined) {
     // Tab width should be positive and reasonable (min 1/12" = 120 twips, max 2" = 2880 twips)
-    if (defaultTabWidth < 120) {
-      throw new Error(`Default tab width too small (minimum 120 twips = 1/12 inch), got ${defaultTabWidth}`)
+    if (tabWidth < 120) {
+      throw new Error(`Default tab width too small (minimum 120 twips = 1/12 inch), got ${tabWidth}`)
     }
-    if (defaultTabWidth > 2880) {
-      throw new Error(`Default tab width too large (maximum 2880 twips = 2 inches), got ${defaultTabWidth}`)
+    if (tabWidth > 2880) {
+      throw new Error(`Default tab width too large (maximum 2880 twips = 2 inches), got ${tabWidth}`)
     }
   }
   if (value.consecutiveHyphens !== undefined) {
@@ -215,11 +204,6 @@ export function validateTypography(_model: RichTextDocumentModel, value: Partial
     if (value.consecutiveHyphens !== undefined && value.consecutiveHyphens > 0) {
       throw new Error("Auto hyphenation is disabled but consecutive hyphens limit is set. This limit will have no effect without auto hyphenation.")
     }
-  }
-
-  // Widow control guidance
-  if (value.widowControl === false) {
-    console.debug("Widow control is disabled. This may result in single lines at the top or bottom of pages, reducing readability.")
   }
 }
 
@@ -285,9 +269,9 @@ export function validateColorEntry(_model: RichTextDocumentModel, _alias: string
 /**
  * Validate font entry
  */
-export function validateFontEntry(_model: RichTextDocumentModel, _alias: string, value: Partial<RTFFont>): void {
+export function validateFontEntry(_model: RichTextDocumentModel, _alias: string, value: RTFFont): void {
   // Required name field validation
-  if (!value.name || value.name.length === 0 || value.name.length > 64) {
+  if (value.name.length === 0 || value.name.length > 64) {
     throw new Error(`Font name cannot be empty string or exceed 64 characters, got ${(value.name || "").length}`)
   }
 
@@ -322,7 +306,7 @@ export function validateFontEntry(_model: RichTextDocumentModel, _alias: string,
 /**
  * Validate style entry
  */
-export function validateStyleEntry(model: RichTextDocumentModel, _alias: string, value: Partial<RTFStyle>, pendingStyleAliases: string[]): void {
+export function validateStyleEntry(model: RichTextDocumentModel, _alias: string, value: RTFStyle, pendingStyleAliases: string[]): void {
   // Style name validation (optional field)
   if (value.name !== undefined) {
     if (value.name.length === 0 || value.name.length > 253) {
@@ -360,9 +344,9 @@ export function validateStyleEntry(model: RichTextDocumentModel, _alias: string,
 /**
  * Validate list entry
  */
-export function validateListEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFList>): void {
+export function validateListEntry(model: RichTextDocumentModel, alias: string, value: RTFList): void {
   // Critical validation: List must have at least one level defined
-  if (!value.levels || value.levels.length === 0) {
+  if (value.levels.length === 0) {
     throw new Error(`List "${alias}" must have at least one level defined`)
   }
 
@@ -371,24 +355,11 @@ export function validateListEntry(model: RichTextDocumentModel, alias: string, v
     throw new Error(`List "${alias}" has ${value.levels.length} levels, but maximum is 9 (levels 0-8)`)
   }
 
-  // Validate list type
-  if (value.type !== undefined) {
-    const validTypes = ["simple", "multi", "hybrid"]
-    if (!validTypes.includes(value.type)) {
-      throw new Error(`List "${alias}" has invalid type "${value.type}". Must be one of: ${validTypes.join(", ")}`)
-    }
-
-    // Simple lists should only have one level
-    if (value.type === "simple" && value.levels.length > 1) {
-      console.debug(`Warning: List "${alias}" is marked as simple but has ${value.levels.length} levels. Simple lists typically have only one level.`)
-    }
-  }
-
   // Validate each level
   value.levels.forEach((level, index) => {
     if (level) {
       try {
-        validateListLevelEntry(model, alias, index, level)
+        validateListLevelEntry(model, index, level)
       } catch (error) {
         throw new Error(`List "${alias}" level ${index}: ${error instanceof Error ? error.message : String(error)}`)
       }
@@ -406,36 +377,7 @@ export function validateListEntry(model: RichTextDocumentModel, alias: string, v
 /**
  * Validate list level entry
  */
-export function validateListLevelEntry(_model: RichTextDocumentModel, listAlias: string, level: number, value: Partial<RTFListLevel>): void {
-  // Validate level number range
-  if (level < 0 || level > 8) {
-    throw new Error(`List level must be between 0-8, got ${level}`)
-  }
-
-  // Validate number format
-  if (value.numberFormat !== undefined) {
-    const validFormats = ["arabic", "upperRoman", "lowerRoman", "upperLetter", "lowerLetter", "ordinal", "cardinal", "ordinalText", "bullet", "none"]
-    if (!validFormats.includes(value.numberFormat)) {
-      throw new Error(`Invalid number format "${value.numberFormat}". Must be one of: ${validFormats.join(", ")}`)
-    }
-  }
-
-  // Validate justification
-  if (value.justification !== undefined) {
-    const validJustifications = ["left", "center", "right"]
-    if (!validJustifications.includes(value.justification)) {
-      throw new Error(`Invalid justification "${value.justification}". Must be one of: ${validJustifications.join(", ")}`)
-    }
-  }
-
-  // Validate follow character
-  if (value.followChar !== undefined) {
-    const validFollowChars = ["tab", "space", "nothing"]
-    if (!validFollowChars.includes(value.followChar)) {
-      throw new Error(`Invalid follow character "${value.followChar}". Must be one of: ${validFollowChars.join(", ")}`)
-    }
-  }
-
+export function validateListLevelEntry(_model: RichTextDocumentModel, level: number, value: RTFListLevel): void {
   // Validate startAt (must be positive integer)
   if (value.startAt !== undefined) {
     if (!Number.isInteger(value.startAt) || value.startAt < 0) {
@@ -457,109 +399,6 @@ export function validateListLevelEntry(_model: RichTextDocumentModel, listAlias:
   }
 
   // Validate indentation and positioning
-  validateRTFSize(value.leftIndent, `list[${listAlias}].level[${level}].leftIndent`, true, true)
-  validateRTFSize(value.firstLineIndent, `list[${listAlias}].level[${level}].firstLineIndent`, true, true)
-  validateRTFSize(value.tabPosition, `list[${listAlias}].level[${level}].tabPosition`, true)
-  validateRTFSize(value.numberPosition, `list[${listAlias}].level[${level}].numberPosition`, true)
-  validateRTFSize(value.textPosition, `list[${listAlias}].level[${level}].textPosition`, true)
-
-  // Validate level text (custom number/bullet text)
-  if (value.levelText !== undefined) {
-    if (value.levelText.length > 255) {
-      throw new Error(`Level text cannot exceed 255 characters, got ${value.levelText.length}`)
-    }
-
-    // Check for RTF control characters that could break the document
-    if (INVALID_CTRL_CHARS.test(value.levelText)) {
-      throw new Error(`Level text contains RTF control characters (\\, {, }) which must be properly escaped`)
-    }
-  }
-
-  // Validate level numbers format
-  if (value.levelNumbers !== undefined) {
-    if (value.levelNumbers.length > 255) {
-      throw new Error(`Level numbers format cannot exceed 255 characters, got ${value.levelNumbers.length}`)
-    }
-  }
-
-  // Logical validations
-  if (value.numberFormat === "bullet" || value.numberFormat === "none") {
-    if (value.startAt !== undefined && value.startAt !== 1) {
-      console.debug(`Warning: Start number ${value.startAt} has no effect for number format "${value.numberFormat}"`)
-    }
-  }
-
-  // Hanging indent validation (first line indent should typically be negative for lists)
-  const firstLineIndent = toTwips(value.firstLineIndent)
-  const leftIndent = toTwips(value.leftIndent)
-  if (firstLineIndent > 0 && leftIndent > 0) {
-    console.debug(`Warning: List level ${level} has positive first line indent. Lists typically use negative first line indent for hanging indentation.`)
-  }
-  if (firstLineIndent < 0 && Math.abs(firstLineIndent) > leftIndent) {
-    console.debug(`Warning: List level ${level} has first line indent that extends beyond left margin. This may cause rendering issues.`)
-  }
-}
-
-/**
- * Validate list override entry
- */
-export function validateListOverrideEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFListOverride>): void {
-  // Critical validation: List override must reference an existing list
-  if (!value.listAlias) {
-    throw new Error(`List override "${alias}" must reference a list via listAlias`)
-  }
-
-  if (!model.listRegistry.has(value.listAlias)) {
-    throw new Error(`List override "${alias}" references non-existent list "${value.listAlias}"`)
-  }
-
-  // Get the referenced list for validation
-  const referencedListEntry = model.listRegistry.get(value.listAlias)
-  const referencedList = referencedListEntry?.item
-  const maxLevel = referencedList?.levels ? referencedList.levels.length - 1 : 8
-
-  // Validate level overrides
-  if (value.levelOverrides && value.levelOverrides.length > 0) {
-    const overriddenLevels = new Set<number>()
-
-    value.levelOverrides.forEach((override, index) => {
-      if (!override) return
-
-      // Validate level number
-      if (override.level !== undefined) {
-        if (!Number.isInteger(override.level) || override.level < 0 || override.level > 8) {
-          throw new Error(`List override "${alias}" level override ${index}: level must be between 0-8, got ${override.level}`)
-        }
-
-        if (override.level > maxLevel) {
-          throw new Error(`List override "${alias}" level override ${index}: level ${override.level} exceeds maximum level ${maxLevel} in referenced list`)
-        }
-
-        // Check for duplicate level overrides
-        if (overriddenLevels.has(override.level)) {
-          throw new Error(`List override "${alias}" has multiple overrides for level ${override.level}`)
-        }
-        overriddenLevels.add(override.level)
-      }
-
-      // Validate startAt override
-      if (override.startAt !== undefined) {
-        if (!Number.isInteger(override.startAt) || override.startAt < 0) {
-          throw new Error(`List override "${alias}" level override ${index}: startAt must be a non-negative integer, got ${override.startAt}`)
-        }
-        if (override.startAt > 32767) {
-          throw new Error(`List override "${alias}" level override ${index}: startAt ${override.startAt} exceeds maximum value of 32767`)
-        }
-      }
-
-      // Validate override properties if provided
-      if (override.override) {
-        try {
-          validateListLevelEntry(model, `${alias}(override)`, override.level || 0, override.override)
-        } catch (error) {
-          throw new Error(`List override "${alias}" level ${override.level}: ${error instanceof Error ? error.message : String(error)}`)
-        }
-      }
-    })
-  }
+  validateRTFSize(value.leftIndent, `leftIndent`, true, true)
+  validateRTFSize(value.firstLineIndent, `firstLineIndent`, true, true)
 }

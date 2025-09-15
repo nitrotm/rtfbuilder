@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {},
-    "typeRoots": ["./node_modules/@types"],
+    "typeRoots": ["./node_modules/@types", "./types"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",

@@ -67,9 +67,9 @@ Bookmarks mark specific locations in the document for reference by hyperlinks an
 Corresponding relationship in `word/_rels/document.xml.rels`:
 
 ```xml
-<Relationship Id="rId5" 
-              Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" 
-              Target="https://example.com" 
+<Relationship Id="rId5"
+              Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
+              Target="https://example.com"
               TargetMode="External"/>
 ```
 
@@ -87,31 +87,6 @@ Corresponding relationship in `word/_rels/document.xml.rels`:
     </w:r>
   </w:hyperlink>
 </w:p>
-```
-
-### Email Hyperlinks
-
-```xml
-<w:p>
-  <w:hyperlink r:id="rId6" w:tooltip="Send email">
-    <w:r>
-      <w:rPr>
-        <w:color w:val="0563C1" w:themeColor="hyperlink"/>
-        <w:u w:val="single"/>
-      </w:rPr>
-      <w:t>contact@example.com</w:t>
-    </w:r>
-  </w:hyperlink>
-</w:p>
-```
-
-Email relationship:
-
-```xml
-<Relationship Id="rId6" 
-              Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" 
-              Target="mailto:contact@example.com?subject=Inquiry" 
-              TargetMode="External"/>
 ```
 
 ## Footnotes and Endnotes
@@ -145,7 +120,7 @@ Footnotes and endnotes require separate XML parts and relationships.
       </w:r>
     </w:p>
   </w:footnote>
-  
+
   <w:footnote w:type="continuationSeparator" w:id="0">
     <w:p>
       <w:pPr>
@@ -156,7 +131,7 @@ Footnotes and endnotes require separate XML parts and relationships.
       </w:r>
     </w:p>
   </w:footnote>
-  
+
   <w:footnote w:id="1">
     <w:p>
       <w:pPr>
@@ -181,8 +156,8 @@ Footnotes and endnotes require separate XML parts and relationships.
 Add to `word/_rels/document.xml.rels`:
 
 ```xml
-<Relationship Id="rId7" 
-              Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" 
+<Relationship Id="rId7"
+              Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes"
               Target="footnotes.xml"/>
 ```
 
@@ -201,6 +176,7 @@ Similar structure but using `w:endnoteReference`, `word/endnotes.xml`, and endno
 ### Page Numbers
 
 **Page number field:**
+
 ```xml
 <w:fldSimple w:instr=" PAGE ">
   <w:r><w:t>1</w:t></w:r>
@@ -208,6 +184,7 @@ Similar structure but using `w:endnoteReference`, `word/endnotes.xml`, and endno
 ```
 
 **Date and time:**
+
 ```xml
 <w:fldSimple w:instr=" DATE \@ &quot;MMMM d, yyyy&quot; ">
   <w:r><w:t>January 15, 2024</w:t></w:r>

@@ -59,29 +59,6 @@ builder.withSection((section) => {
     })
     .closeParagraph()
 
-  // Picture with scaling
-  section.body.withHeading("Picture Scaling", 1)
-
-  section.body
-    .withText("50% scale: ")
-    .withPicture(pictureData, {
-      displayWidth: inch(1),
-      displayHeight: inch(1),
-      scaleX: 0.5,
-      scaleY: 0.5,
-    })
-    .closeParagraph()
-
-  section.body
-    .withText("200% horizontal scale: ")
-    .withPicture(pictureData, {
-      displayWidth: inch(1),
-      displayHeight: inch(1),
-      scaleX: 2.0,
-      scaleY: 1.0,
-    })
-    .closeParagraph()
-
   // Multiple pictures in a row
   section.body.withHeading("Multiple Pictures", 1)
   section.body.withText("Three images in a row: ")

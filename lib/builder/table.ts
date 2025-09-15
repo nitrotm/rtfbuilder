@@ -6,7 +6,6 @@ import {
   RTFPictureData,
   RTFPictureFormatting,
   RTFRect,
-  RTFShadingPattern,
   RTFSize,
   RTFTableCell,
   RTFTableCellFormatting,
@@ -19,7 +18,7 @@ import {
 } from "../types"
 import { pt } from "../utils"
 
-import { RTFBuilder, SpecialContent } from "./base"
+import { RTFBuilder, RTFSpecialContent } from "./base"
 import { ListBuilder } from "./list"
 import { ParagraphBuilder } from "./paragraph"
 
@@ -104,63 +103,40 @@ export class TableBuilder extends RTFBuilder<RTFTableElement> {
     return this
   }
 
+  border(side: "top" | "right" | "bottom" | "left" | "horizontal" | "vertical" | "all", value: Partial<RTFBorder> = { width: pt(1) }): this {
+    this._formatting.borders ||= {}
+    switch (side) {
+      case "all":
+        this._formatting.borders.top = value
+        this._formatting.borders.right = value
+        this._formatting.borders.bottom = value
+        this._formatting.borders.left = value
+        this._formatting.borders.vertical = value
+        this._formatting.borders.horizontal = value
+        break
+      default:
+        this._formatting.borders[side] = value
+        break
+    }
+    return this
+  }
+
+  backgroundColor(backgroundColorAlias: string): this {
+    this._formatting.backgroundColorAlias = backgroundColorAlias
+    return this
+  }
+
   cellSpacing(size: RTFSize): this {
     this._formatting.cellSpacing = size
     return this
   }
 
-  cellBorder(side: "top" | "right" | "bottom" | "left" | "horizontal" | "vertical" | "all", value: Partial<RTFBorder> = { width: pt(1) }): this {
-    this._formatting.cellFormatting ||= {}
-    this._formatting.cellFormatting.borders ||= {}
-    switch (side) {
-      case "all":
-        this._formatting.cellFormatting.borders.top = value
-        this._formatting.cellFormatting.borders.right = value
-        this._formatting.cellFormatting.borders.bottom = value
-        this._formatting.cellFormatting.borders.left = value
-        this._formatting.cellFormatting.borders.vertical = value
-        this._formatting.cellFormatting.borders.horizontal = value
-        break
-      default:
-        this._formatting.cellFormatting.borders[side] = value
-        break
-    }
-    return this
-  }
-
-  cellShading(ratio: number, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    if (!this._formatting.cellFormatting) {
-      this._formatting.cellFormatting = {}
-    }
-    this._formatting.cellFormatting.shading = {
-      ratio,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
-  cellShadingPattern(pattern: RTFShadingPattern, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    if (!this._formatting.cellFormatting) {
-      this._formatting.cellFormatting = {}
-    }
-    this._formatting.cellFormatting.shading = {
-      pattern,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
   cellPadding(padding: Partial<RTFRect>): this {
-    if (!this._formatting.cellFormatting) {
-      this._formatting.cellFormatting = {}
+    if (!this._formatting.cellPadding) {
+      this._formatting.cellPadding = {}
     }
-    if (!this._formatting.cellFormatting.padding) {
-      this._formatting.cellFormatting.padding = {}
-    }
-    this._formatting.cellFormatting.padding = {
-      ...this._formatting.cellFormatting.padding,
+    this._formatting.cellPadding = {
+      ...this._formatting.cellPadding,
       ...padding,
     }
     return this
@@ -219,65 +195,25 @@ class TableRowBuilder extends RTFBuilder<RTFTableRow> {
     return this
   }
 
-  cellSpacing(size: RTFSize): this {
-    this._formatting.cellSpacing = size
-    return this
-  }
-
-  cellBorder(side: "top" | "right" | "bottom" | "left" | "horizontal" | "vertical" | "all", value: Partial<RTFBorder> = { width: pt(1) }): this {
-    this._formatting.cellFormatting ||= {}
-    this._formatting.cellFormatting.borders ||= {}
+  border(side: "top" | "right" | "bottom" | "left" | "vertical" | "all", value: Partial<RTFBorder> = { width: pt(1) }): this {
+    this._formatting.borders ||= {}
     switch (side) {
       case "all":
-        this._formatting.cellFormatting.borders.top = value
-        this._formatting.cellFormatting.borders.right = value
-        this._formatting.cellFormatting.borders.bottom = value
-        this._formatting.cellFormatting.borders.left = value
-        this._formatting.cellFormatting.borders.vertical = value
-        this._formatting.cellFormatting.borders.horizontal = value
+        this._formatting.borders.top = value
+        this._formatting.borders.right = value
+        this._formatting.borders.bottom = value
+        this._formatting.borders.left = value
+        this._formatting.borders.vertical = value
         break
       default:
-        this._formatting.cellFormatting.borders[side] = value
+        this._formatting.borders[side] = value
         break
     }
     return this
   }
 
-  cellShading(ratio: number, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    if (!this._formatting.cellFormatting) {
-      this._formatting.cellFormatting = {}
-    }
-    this._formatting.cellFormatting.shading = {
-      ratio,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
-  cellShadingPattern(pattern: RTFShadingPattern, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    if (!this._formatting.cellFormatting) {
-      this._formatting.cellFormatting = {}
-    }
-    this._formatting.cellFormatting.shading = {
-      pattern,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
-  cellPadding(padding: Partial<RTFRect>): this {
-    if (!this._formatting.cellFormatting) {
-      this._formatting.cellFormatting = {}
-    }
-    if (!this._formatting.cellFormatting.padding) {
-      this._formatting.cellFormatting.padding = {}
-    }
-    this._formatting.cellFormatting.padding = {
-      ...this._formatting.cellFormatting.padding,
-      ...padding,
-    }
+  backgroundColor(backgroundColorAlias: string): this {
+    this._formatting.backgroundColorAlias = backgroundColorAlias
     return this
   }
 
@@ -337,7 +273,7 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
     this._lastParagraph = builder
     return builder
   }
-  withText(...items: (string | Partial<RTFCharacterFormatting>)[]): this {
+  withText(...items: (string | RTFSpecialContent | Partial<RTFCharacterFormatting>)[]): this {
     this.lastParagraph.withText(...items)
     return this
   }
@@ -359,10 +295,6 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
   }
   withExternalLink(url: string, text: string, formatting: Partial<RTFCharacterFormatting> = {}): this {
     this.lastParagraph.withExternalLink(url, text, formatting)
-    return this
-  }
-  withSpecial(code: SpecialContent): this {
-    this.lastParagraph.withSpecial(code)
     return this
   }
   closeParagraph(): this {
@@ -415,7 +347,7 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
     return this
   }
 
-  border(side: "top" | "right" | "bottom" | "left" | "horizontal" | "vertical" | "all", value: Partial<RTFBorder> = { width: pt(1) }): this {
+  border(side: "top" | "right" | "bottom" | "left" | "all", value: Partial<RTFBorder> = { width: pt(1) }): this {
     this._formatting.borders ||= {}
     switch (side) {
       case "all":
@@ -423,8 +355,6 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
         this._formatting.borders.right = value
         this._formatting.borders.bottom = value
         this._formatting.borders.left = value
-        this._formatting.borders.vertical = value
-        this._formatting.borders.horizontal = value
         break
       default:
         this._formatting.borders[side] = value
@@ -444,31 +374,8 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
     return this
   }
 
-  shading(ratio: number, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    this._formatting.shading = {
-      ratio,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
-  shadingPattern(pattern: RTFShadingPattern, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    this._formatting.shading = {
-      pattern,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
-  backgroundColorAlias(alias: string): this {
+  backgroundColor(alias: string): this {
     this._formatting.backgroundColorAlias = alias
-    return this
-  }
-
-  foregroundColorAlias(alias: string): this {
-    this._formatting.foregroundColorAlias = alias
     return this
   }
 

@@ -3,7 +3,6 @@ import {
   validateDocumentInfo,
   validateFontEntry,
   validateListEntry,
-  validateListOverrideEntry,
   validatePageSetup,
   validateStyleEntry,
   validateTypography,
@@ -22,6 +21,5 @@ export const RTF_DOCUMENT_VALIDATOR = {
   validateFontEntry,
   validateStyleEntry,
   validateListEntry,
-  validateListOverrideEntry,
   validateSection,
 }

@@ -100,12 +100,7 @@ builder.withStyle("codeBlock", {
         spacing: pt(3),
       },
     },
-    shading: {
-      ratio: 0.05,
-      pattern: "horizontal",
-      backgroundColorAlias: "lightGray",
-      foregroundColorAlias: "darkGray",
-    },
+    backgroundColorAlias: "lightGray",
   },
 })
 
@@ -230,31 +225,6 @@ builder.withSection((section) => {
         c.style("code").color("red").text("red code text")
       })
       .withText(".")
-  })
-
-  // Style inheritance example
-  section.body.withParagraph((p) => {
-    p.style("heading2").withText("Style Benefits")
-  })
-
-  section.body.withParagraph((p) => {
-    p.withText("RTF styles provide several advantages:")
-  })
-
-  section.body.withParagraph((p) => {
-    p.withText("• Consistent formatting across the document")
-  })
-
-  section.body.withParagraph((p) => {
-    p.withText("• Easy maintenance and updates")
-  })
-
-  section.body.withParagraph((p) => {
-    p.withText("• Professional appearance")
-  })
-
-  section.body.withParagraph((p) => {
-    p.withText("• Better compatibility with word processors")
   })
 })
 

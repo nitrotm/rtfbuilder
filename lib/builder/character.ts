@@ -16,7 +16,7 @@ type InlineFactory = () => RTFCharacterContentElement
 
 export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
   private readonly _formatting: Partial<RTFCharacterFormatting> = {}
-  private _bookmarkName?: string
+  private _bookmarkAlias?: string
   private _link?: RTFHyperlink
   private readonly _children: InlineFactory[] = []
 
@@ -31,6 +31,11 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
     if (text.length > 0) {
       this._children.push(() => ({ type: "text", text }))
     }
+    return this
+  }
+
+  special(code: SpecialContent): this {
+    this._children.push(() => ({ type: code }))
     return this
   }
 
@@ -65,17 +70,6 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
     return this
   }
 
-  withSpecial(code: SpecialContent): this {
-    this._children.push(() => {
-      if (code === "date" || code === "time") {
-        return { type: "dateTime", field: code }
-      } else {
-        return { type: code }
-      }
-    })
-    return this
-  }
-
   style(alias: string): this {
     this._formatting.styleAlias = alias
     return this
@@ -106,8 +100,8 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
     return this
   }
 
-  horizontalScaling(percentage: number): this {
-    this._formatting.horizontalScaling = percentage
+  horizontalScaling(ratio: number): this {
+    this._formatting.horizontalScaling = ratio
     return this
   }
 
@@ -147,15 +141,16 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
     return this
   }
 
-  bookmark(name: string): this {
-    this._bookmarkName = name
+  bookmark(bookmarkAlias: string, name?: string): this {
+    this.document.withBookmark(bookmarkAlias, name)
+    this._bookmarkAlias = bookmarkAlias
     return this
   }
 
-  bookmarkLink(anchor: string): this {
+  bookmarkLink(bookmarkAlias: string): this {
     this._link = {
       type: "bookmark",
-      bookmark: anchor,
+      bookmarkAlias,
     }
     return this
   }
@@ -169,11 +164,21 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
   }
 
   emailLink(address: string, subject?: string, body?: string): this {
-    this._link = {
-      type: "email",
-      email: { address, subject, body },
+    const url = [`mailto:${address}`]
+
+    if (subject || body) {
+      url.push("?")
+      if (subject) {
+        url.push(`subject=${encodeURIComponent(subject)}`)
+      }
+      if (body) {
+        if (subject) {
+          url.push("&")
+        }
+        url.push(`body=${encodeURIComponent(body)}`)
+      }
     }
-    return this
+    return this.externalLink(url.join(""))
   }
 
   with(formatting: Partial<RTFCharacterFormatting>): this {
@@ -185,7 +190,7 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
     return {
       type: "character",
       formatting: this._formatting,
-      bookmarkName: this._bookmarkName,
+      bookmarkAlias: this._bookmarkAlias,
       link: this._link,
       content: this._children.map((x) => x()),
     }

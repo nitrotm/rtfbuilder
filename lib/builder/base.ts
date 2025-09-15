@@ -2,7 +2,19 @@ import { SectionBuilder } from "./section"
 
 import { RichTextDocumentBuilder } from "."
 
-export type SpecialContent = "pageBreak" | "lineBreak" | "tab" | "nonBreakingSpace" | "nonBreakingHyphen" | "optionalHyphen" | "pageNumber" | "date" | "time"
+export type SpecialContent =
+  | "pageBreak"
+  | "lineBreak"
+  | "tab"
+  | "nonBreakingSpace"
+  | "nonBreakingHyphen"
+  | "optionalHyphen"
+  | "pageNumber"
+  | "totalPages"
+  | "date"
+  | "time"
+
+export type RTFSpecialContent = { special: SpecialContent }
 
 export abstract class RTFBuilder<T> {
   abstract readonly empty: boolean

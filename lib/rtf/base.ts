@@ -1,6 +1,6 @@
 import { RichTextDocumentModel } from "../document"
-import { RTFBorder, RTFColumnBreakElement, RTFElement, RTFShadingPattern } from "../types"
-import { toTwips } from "../utils"
+import { RTFBorder, RTFColumnBreakElement, RTFElement } from "../types"
+import { toTwip } from "../utils"
 
 import { generateParagraph } from "./paragraph"
 import { generateTable } from "./table"
@@ -23,26 +23,6 @@ export function generateTimestamp(type: string, date: Date): string {
   return `{\\${type}\\yr${date.getFullYear()}\\mo${date.getMonth() + 1}\\dy${date.getDate()}\\hr${date.getHours()}\\min${date.getMinutes()}\\sec${date.getSeconds()}}`
 }
 
-/** Generate shading pattern control word */
-export function generateShadingPattern(pattern: RTFShadingPattern): string {
-  const patternMap: Record<RTFShadingPattern, string> = {
-    horizontal: "\\bghoriz",
-    vertical: "\\bgvert",
-    forwardDiagonal: "\\bgfdiag",
-    backwardDiagonal: "\\bgbdiag",
-    cross: "\\bgcross",
-    diagonalCross: "\\bgdcross",
-    darkHorizontal: "\\bgdkhoriz",
-    darkVertical: "\\bgdkvert",
-    darkForwardDiagonal: "\\bgdkfdiag",
-    darkBackwardDiagonal: "\\bgdkbdiag",
-    darkCross: "\\bgdkcross",
-    darkDiagonalCross: "\\bgdkdcross",
-  }
-
-  return patternMap[pattern]
-}
-
 /** Generate border style control words */
 export function generateBorderStyle(model: RichTextDocumentModel, border: Partial<RTFBorder>): string {
   const parts: string[] = []
@@ -59,9 +39,9 @@ export function generateBorderStyle(model: RichTextDocumentModel, border: Partia
   }
 
   parts.push(styleMap[border.style || "single"])
-  if (border.width !== undefined) parts.push(`\\brdrw${toTwips(border.width)}`)
+  if (border.width !== undefined) parts.push(`\\brdrw${toTwip(border.width)}`)
   if (border.colorAlias !== undefined) parts.push(`\\brdrcf${model.colorRegistry.index(border.colorAlias)}`)
-  if (border.spacing !== undefined) parts.push(`\\brsp${toTwips(border.spacing)}`)
+  if (border.spacing !== undefined) parts.push(`\\brsp${toTwip(border.spacing)}`)
   return parts.join("")
 }
 

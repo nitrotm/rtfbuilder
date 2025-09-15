@@ -23,6 +23,7 @@ builder.withSection((section) => {
   section.body.withHeading("1. Simple Bullet Lists", 1)
   section.body.withText("A basic bulleted list with default formatting:").closeParagraph()
   section.body.withList((list) => {
+    list.simple("bullet")
     list.newItem().withText("First item in the list")
     list.newItem().withText("Second item in the list")
     list.newItem().withText("Third item in the list")
@@ -33,6 +34,7 @@ builder.withSection((section) => {
     p.withText("A bulleted list with formatted text:")
   })
   section.body.withList((list) => {
+    list.simple("decimal")
     list.newItem().withText({ bold: true }, "Bold item", {}, " with regular text")
     list.newItem().withText({ italic: true }, "Italic item", {}, " with regular text")
     list.newItem().withText("Item with ", { colorAlias: "blue" }, "colored text")
@@ -108,7 +110,7 @@ builder.withSection((section) => {
   section.body.withText("A more complex example showing multiple levels of nesting:").closeParagraph()
 
   section.body.withList((list) => {
-    list.simple("upperRoman")
+    list.custom("decimal", "bullet", "decimal", "bullet", "decimal")
 
     list.withItem((item) => {
       item.withText({ bold: true, fontSize: pt(12) }, "Project Planning")

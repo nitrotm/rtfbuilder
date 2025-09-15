@@ -1,4 +1,4 @@
-import { RichTextDocumentBuilder, RTFCharacterFormatting } from "../../lib"
+import { pt, RichTextDocumentBuilder, RTFCharacterFormatting } from "../../lib"
 
 const builder = new RichTextDocumentBuilder()
 
@@ -20,10 +20,16 @@ builder.withSection((section) => {
 
   section.body.withHeading("Table of Contents", 1)
   section.body.withText("Click on any link below to jump to the corresponding section:").closeParagraph()
-  section.body.withBookmarkLink("intro", "1. Introduction to Bookmarks", linkStyle).closeParagraph()
-  section.body.withBookmarkLink("external", "2. External Links", linkStyle).closeParagraph()
-  section.body.withBookmarkLink("email", "3. Email Links", linkStyle).closeParagraph()
-  section.body.withBookmarkLink("files", "4. File Links", linkStyle).closeParagraph()
+  section.body.withParagraph((p) => {
+    p.spaceBefore(pt(10))
+      .withBookmarkLink("intro", "1. Introduction to Bookmarks", linkStyle)
+      .withText({ special: "lineBreak" })
+      .withBookmarkLink("external", "2. External Links", linkStyle)
+      .withText({ special: "lineBreak" })
+      .withBookmarkLink("email", "3. Email Links", linkStyle)
+      .withText({ special: "lineBreak" })
+      .withBookmarkLink("files", "4. File Links", linkStyle)
+  })
 })
 
 // Create new section for page break effect
@@ -42,7 +48,7 @@ builder.withSection((section) => {
     list.newItem().withText("Invisible in the rendered document")
     list.newItem().withText("Supported by most RTF readers")
   })
-  section.body.withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
+  section.body.newParagraph().spaceBefore(pt(20)).withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
 })
 
 // Section 2: External Links
@@ -54,7 +60,7 @@ builder.withSection((section) => {
 
   section.body.withHeading("Web Links:", 2)
   section.body.withText("Visit ").withExternalLink("https://www.example.com", "Example.com", linkStyle).withText(" for more information.").closeParagraph()
-  section.body.withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
+  section.body.newParagraph().spaceBefore(pt(20)).withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
 })
 
 // Section 3: Email Links
@@ -75,7 +81,7 @@ builder.withSection((section) => {
     p.withChunk((c) => c.emailLink("info@example.com", "Question", 'Hello, I have a "question" about...').with(linkStyle).text("Send a pre-composed email"))
   )
   section.body.closeParagraph()
-  section.body.withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
+  section.body.newParagraph().spaceBefore(pt(20)).withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
 })
 
 // Section 4: File Links
@@ -93,7 +99,7 @@ builder.withSection((section) => {
   section.body
     .withText("File links may not work in all RTF readers due to security restrictions. Some readers may require user confirmation before opening local files.")
     .closeParagraph()
-  section.body.withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
+  section.body.newParagraph().spaceBefore(pt(20)).withBookmarkLink("top", "← Back to Table of Contents", linkStyle)
 })
 
 export default builder

@@ -1,21 +1,17 @@
-import { RichTextDocumentModel } from "../document"
+import { DEFAULT_TAB_WIDTH, RichTextDocumentModel } from "../document"
 import {
   RTFCharset,
-  RTFColor,
   RTFColumnBreakElement,
   RTFElement,
   RTFFont,
-  RTFList,
   RTFListLevel,
-  RTFListNumberFormat,
-  RTFListOverride,
   RTFPageSetup,
   RTFSection,
   RTFStyle,
   RTFTypographySettings,
   RTFViewSettings,
 } from "../types"
-import { pt, RTFRegistry, toTwips } from "../utils"
+import { toTwip } from "../utils"
 
 import { RTFGenerationOptions } from "."
 import { escapeRTFText, generateTimestamp } from "./base"
@@ -38,10 +34,10 @@ export function generateCharset(charset: RTFCharset): string {
 }
 
 /** Generate border control words for all sides */
-export function generateFontTable(fontRegistry: RTFRegistry<RTFFont>): string {
+export function generateFontTable(model: RichTextDocumentModel): string {
   const parts = ["{\\fonttbl"]
 
-  for (const entry of fontRegistry.entries()) {
+  for (const entry of model.fontRegistry.entries()) {
     const font = entry.item
 
     parts.push(`{\\f${entry.index}`)
@@ -54,7 +50,7 @@ export function generateFontTable(fontRegistry: RTFRegistry<RTFFont>): string {
 
     // Font pitch
     if (font.pitch !== undefined) {
-      const pitchMap: Record<RTFFont["pitch"], number> = { default: 0, fixed: 1, variable: 2 }
+      const pitchMap: Record<Exclude<RTFFont["pitch"], undefined>, number> = { default: 0, fixed: 1, variable: 2 }
 
       parts.push(`\\fprq${pitchMap[font.pitch]}`)
     }
@@ -71,10 +67,10 @@ export function generateFontTable(fontRegistry: RTFRegistry<RTFFont>): string {
 }
 
 /** Generate color table */
-export function generateColorTable(colorRegistry: RTFRegistry<RTFColor>): string {
+export function generateColorTable(model: RichTextDocumentModel): string {
   const parts = ["{\\colortbl;"] // First entry is always empty (auto color)
 
-  for (const entry of colorRegistry.entries()) {
+  for (const entry of model.colorRegistry.entries()) {
     const color = entry.item
 
     if (entry.index === 0) continue // Skip auto color
@@ -133,182 +129,97 @@ export function generateStyleTable(model: RichTextDocumentModel): string {
 }
 
 /** Generate list table */
-export function generateListTable(listRegistry: RTFRegistry<RTFList>): string {
-  const parts = ["{\\*\\listtable"]
+export function generateListTable(model: RichTextDocumentModel): string {
+  const parts = []
 
-  for (const entry of listRegistry.entries()) {
+  parts.push("{\\*\\listtable")
+  for (const entry of model.listRegistry.entries()) {
     const list = entry.item
-
-    // Template ID - unique identifier for this list template
-    parts.push("{\\list")
-    parts.push(`\\listtemplateid${entry.index + 1000}`)
-
-    // List type flags
-    if (list.type === "hybrid") {
-      parts.push("\\listhybrid")
-    } else if (list.type === "multi") {
-      parts.push("\\listsimple0")
-    } else if (list.type === "simple") {
-      parts.push("\\listsimple1")
-    }
-
-    // Restart options
-    if (list.restartEachSection) parts.push("\\listrestarthdn1")
-
-    // Generate list levels (up to 9 levels)
     const levels = list.levels || []
-    for (let i = 0; i < Math.min(9, levels.length); i++) {
-      parts.push("\n")
-      parts.push(generateListLevel(levels[i], i))
-    }
 
-    // List ID - used to reference this list
+    parts.push("{\\list")
+    if (list.restartEachSection) parts.push("\\listrestarthdn1")
+    for (let i = 0; i < Math.min(9, levels.length); i++) {
+      parts.push("{\\listlevel", generateListLevel(model, levels[i], i), "}\n")
+    }
     parts.push(`\\listid${entry.index}`)
+    parts.push("}\n")
+  }
+  parts.push("}\n")
+
+  parts.push("{\\*\\listoverridetable")
+  for (const entry of model.listRegistry.entries()) {
+    parts.push("{\\listoverride")
+    parts.push(`\\listid${entry.index}`)
+    parts.push(`\\listoverridecount0`)
+    parts.push(`\\ls${entry.index}`)
     parts.push("}")
   }
-
   parts.push("}\n")
+
   return parts.join("")
 }
 
 /** Generate a single list level */
-export function generateListLevel(level: Partial<RTFListLevel>, levelIndex: number): string {
-  const parts = ["{\\listlevel"]
+export function generateListLevel(model: RichTextDocumentModel, level: RTFListLevel, levelIndex: number): string {
+  const parts = []
 
   // Number format
-  const formatMap: Record<RTFListNumberFormat, number> = {
-    arabic: 0,
-    upperRoman: 1,
-    lowerRoman: 2,
-    upperLetter: 3,
-    lowerLetter: 4,
-    ordinal: 5,
-    cardinal: 6,
-    ordinalText: 7,
+  const formatMap: Record<RTFListLevel["format"], number> = {
+    decimal: 0,
     bullet: 23,
     none: 255,
   }
 
-  const numberFormat = level.numberFormat || "arabic"
-  const formatCode = formatMap[numberFormat] ?? 0
-  parts.push(`\\levelnfc${formatCode}`)
-  parts.push(`\\levelnfcn${formatCode}`) // Also need nfcn for Word compatibility
+  parts.push(`\\levelnfc${formatMap[level.format]}`)
+  parts.push(`\\levelfollow0`)
 
   // Justification
   const justMap = { left: 0, center: 1, right: 2 }
-  const justification = level.justification || "left"
-  parts.push(`\\leveljc${justMap[justification] ?? 0}`)
+
+  parts.push(`\\leveljc${justMap[level.justification || "left"]}`)
 
   // Follow character
-  const followMap = { tab: 0, space: 1, nothing: 2 }
-  const followChar = level.followChar || "tab"
-  parts.push(`\\levelfollow${followMap[followChar] ?? 0}`)
-
-  // Start at
   parts.push(`\\levelstartat${level.startAt ?? 1}`)
 
   // Level text - this defines what appears for the number/bullet
-  if (level.levelText) {
-    parts.push(`\\leveltext ${level.levelText};`)
-  } else if (numberFormat === "bullet") {
-    // Default bullet character (bullet point)
-    if (levelIndex === 0) {
-      parts.push(`\\leveltext\\'01\\u-3913 ?;`) // Unicode bullet character
-    } else if (levelIndex === 1) {
-      parts.push(`\\leveltext\\'01\\u-3900 ?;`) // Unicode circle character
-    } else if (levelIndex === 2) {
-      parts.push(`\\leveltext\\'01\\u-3819 ?;`) // Unicode filled circle character
-    } else {
-      parts.push(`\\leveltext\\'01\\u-8226 ?;`) // Unicode bullet character
-    }
-  } else {
-    // Default numbered format - includes the level number
-    parts.push(`\\leveltext\\'02\\'0${levelIndex}.;`) // e.g., "1.", "2.", etc.
-  }
-
-  // Level numbers - which level numbers are included
-  if (level.levelNumbers) {
-    parts.push(`\\levelnumbers${level.levelNumbers};`)
-  } else {
-    // Default: just include current level number
-    parts.push(`\\levelnumbers\\'01;`)
+  switch (level.format) {
+    case "decimal":
+      parts.push(`{\\leveltext\\'02\\'0${levelIndex}.;}`)
+      parts.push(`{\\levelnumbers\\'01;}`)
+      break
+    case "bullet":
+      if (levelIndex === 0) {
+        parts.push(`{\\leveltext\\'01\\u8226 \'b7;}`)
+      } else if (levelIndex === 1) {
+        parts.push(`{\\leveltext\\'01\\u9702 \'b7;}`)
+      } else if (levelIndex === 2) {
+        parts.push(`{\\leveltext\\'01\\u9642 \'b7;}`)
+      } else if (levelIndex === 3) {
+        parts.push(`{\\leveltext\\'01\\u9643 \'b7;}`)
+      } else {
+        parts.push(`{\\leveltext\\'01\\u8226 \'b7;}`)
+      }
+      parts.push(`{\\levelnumbers;}`)
+      break
+    case "none":
+      parts.push(`{\\leveltext\\'01;}`)
+      parts.push(`{\\levelnumbers;}`)
+      break
   }
 
   // Text position and indentation
-  const leftIndent = level.leftIndent ?? pt(36 * (levelIndex + 1))
-  const firstLineIndent = level.firstLineIndent ?? pt(-18)
-  const tabPosition = level.tabPosition ?? leftIndent
+  const tabWidth = toTwip(model.typography.tabWidth || DEFAULT_TAB_WIDTH)
+  const leftIndent = toTwip(level.leftIndent, tabWidth * (1 + levelIndex / 2))
+  const firstLineIndent = toTwip(level.firstLineIndent, -tabWidth / 2)
 
-  parts.push(`\\fi${toTwips(firstLineIndent)}`)
-  parts.push(`\\li${toTwips(leftIndent)}`)
-
-  // Tab position for text after number/bullet
-  if (tabPosition) {
-    parts.push(`\\lin${toTwips(leftIndent)}`) // Left indent for wrapped lines
-    parts.push(`\\jclisttab\\tx${toTwips(tabPosition)}`)
-  }
+  parts.push(`\\fi${firstLineIndent}`)
+  parts.push(`\\li${leftIndent}`)
 
   // Restart level after higher level
   if (level.restartAfterLevel !== undefined) {
     parts.push(`\\levelrestart${level.restartAfterLevel}`)
   }
-
-  // Advanced properties
-  if (level.noRestart) {
-    parts.push(`\\levelnorestart1`)
-  }
-
-  parts.push("}")
-  return parts.join("")
-}
-
-/** Generate list override table */
-export function generateListOverrideTable(listRegistry: RTFRegistry<RTFList>, listOverridesRegistry: RTFRegistry<RTFListOverride>): string {
-  const parts = ["{\\*\\listoverridetable"]
-
-  for (const entry of listOverridesRegistry.entries()) {
-    const override = entry.item
-
-    parts.push("{\\listoverride")
-
-    // Reference to the list template
-    const listIndex = listRegistry.index(override.listAlias || "")
-    parts.push(`\\listid${listIndex}`)
-
-    // Count of level overrides
-    const overrideCount = override.levelOverrides?.length ?? 0
-    parts.push(`\\listoverridecount${overrideCount}`)
-
-    // Generate level overrides if present
-    for (const levelOverride of override.levelOverrides || []) {
-      if (levelOverride.level !== undefined) {
-        parts.push("{\\lfolevel")
-
-        // Level index being overridden
-        parts.push(`\\listoverrideformat${levelOverride.level}`)
-
-        // Override start number if specified
-        if (levelOverride.startAt !== undefined) {
-          parts.push(`\\levelstartat${levelOverride.startAt}`)
-          parts.push(`\\levelnorestart0`) // Allow restart
-        }
-
-        // Apply any format overrides
-        if (levelOverride.override) {
-          // We could generate partial level formatting here if needed
-          // For now, just handle startAt which is most common
-        }
-
-        parts.push("}")
-      }
-    }
-
-    // List override ID - used in \ls control word
-    parts.push(`\\ls${entry.index}`)
-    parts.push("}")
-  }
-
-  parts.push("}\n")
   return parts.join("")
 }
 
@@ -349,17 +260,17 @@ export function generatePageSetup(pageSetup: Partial<RTFPageSetup>): string {
   const parts: string[] = []
 
   // Paper dimensions
-  if (pageSetup.paperWidth !== undefined) parts.push(`\\paperw${toTwips(pageSetup.paperWidth)}`)
-  if (pageSetup.paperHeight !== undefined) parts.push(`\\paperh${toTwips(pageSetup.paperHeight)}`)
+  if (pageSetup.paperWidth !== undefined) parts.push(`\\paperw${toTwip(pageSetup.paperWidth)}`)
+  if (pageSetup.paperHeight !== undefined) parts.push(`\\paperh${toTwip(pageSetup.paperHeight)}`)
 
   // Margins
-  if (pageSetup.margin?.left !== undefined) parts.push(`\\margl${toTwips(pageSetup.margin.left)}`)
-  if (pageSetup.margin?.right !== undefined) parts.push(`\\margr${toTwips(pageSetup.margin.right)}`)
-  if (pageSetup.margin?.top !== undefined) parts.push(`\\margt${toTwips(pageSetup.margin.top)}`)
-  if (pageSetup.margin?.bottom !== undefined) parts.push(`\\margb${toTwips(pageSetup.margin.bottom)}`)
+  if (pageSetup.margin?.left !== undefined) parts.push(`\\margl${toTwip(pageSetup.margin.left)}`)
+  if (pageSetup.margin?.right !== undefined) parts.push(`\\margr${toTwip(pageSetup.margin.right)}`)
+  if (pageSetup.margin?.top !== undefined) parts.push(`\\margt${toTwip(pageSetup.margin.top)}`)
+  if (pageSetup.margin?.bottom !== undefined) parts.push(`\\margb${toTwip(pageSetup.margin.bottom)}`)
 
   // Gutter
-  if (pageSetup.gutter !== undefined) parts.push(`\\gutter${toTwips(pageSetup.gutter)}`)
+  if (pageSetup.gutter !== undefined) parts.push(`\\gutter${toTwip(pageSetup.gutter)}`)
 
   // Orientation
   if (pageSetup.landscape) parts.push("\\landscape")
@@ -380,16 +291,16 @@ export function generatePageSetup(pageSetup: Partial<RTFPageSetup>): string {
 
   // Add number format
   const footnoteNumberingMap: Record<RTFPageSetup["footnoteNumbering"], string> = {
-    arabic: "ftnnar", // Arabic numerals (1, 2, 3)
+    decimal: "ftnnar", // Arabic numerals (1, 2, 3)
     lowercase: "ftnnalc", // Lowercase letters (a, b, c)
     uppercase: "ftnnauc", // Uppercase letters (A, B, C)
-    "roman-lower": "ftnnrlc", // Lowercase Roman (i, ii, iii)
-    "roman-upper": "ftnnruc", // Uppercase Roman (I, II, III)
+    lowerRoman: "ftnnrlc", // Lowercase Roman (i, ii, iii)
+    upperRoman: "ftnnruc", // Uppercase Roman (I, II, III)
     chicago: "ftnnchi", // Chicago style (*, †, ‡, §)
   }
 
-  parts.push("\\" + footnoteNumberingMap[pageSetup.footnoteNumbering || "arabic"])
-  parts.push("\\a" + footnoteNumberingMap[pageSetup.endnoteNumbering || "arabic"])
+  parts.push("\\" + footnoteNumberingMap[pageSetup.footnoteNumbering || "decimal"])
+  parts.push("\\a" + footnoteNumberingMap[pageSetup.endnoteNumbering || "decimal"])
 
   // Add start number if specified
   if (pageSetup.footnoteStartNumber !== undefined) parts.push(`\\ftnstart${pageSetup.footnoteStartNumber}`)
@@ -415,9 +326,8 @@ export function generatePageSetup(pageSetup: Partial<RTFPageSetup>): string {
 export function generateTypographySettings(typography: Partial<RTFTypographySettings>): string {
   const parts: string[] = []
 
-  if (typography.defaultTabWidth !== undefined) parts.push(`\\deftab${toTwips(typography.defaultTabWidth)}`)
-  if (typography.widowControl) parts.push("\\widowctrl")
-  if (typography.hyphenationHotZone !== undefined) parts.push(`\\hyphhotz${toTwips(typography.hyphenationHotZone)}`)
+  parts.push(`\\deftab${toTwip(typography.tabWidth || DEFAULT_TAB_WIDTH)}`)
+  if (typography.hyphenationHotZone !== undefined) parts.push(`\\hyphhotz${toTwip(typography.hyphenationHotZone)}`)
   if (typography.consecutiveHyphens !== undefined) parts.push(`\\hyphconsec${typography.consecutiveHyphens}`)
   if (typography.hyphenateCaps) parts.push("\\hyphcaps")
   if (typography.autoHyphenation) parts.push("\\hyphauto")

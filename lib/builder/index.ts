@@ -1,17 +1,6 @@
 import { RichTextDocument } from "../document"
-import {
-  RTFCharset,
-  RTFColor,
-  RTFDocumentInfo,
-  RTFFont,
-  RTFList,
-  RTFListOverride,
-  RTFPageSetup,
-  RTFStyle,
-  RTFTypographySettings,
-  RTFViewSettings,
-} from "../types"
-import { mm, toTwips } from "../utils"
+import { RTFCharset, RTFColor, RTFDocumentInfo, RTFFont, RTFList, RTFPageSetup, RTFStyle, RTFTypographySettings, RTFViewSettings } from "../types"
+import { mm, toTwip } from "../utils"
 
 import { SectionBuilder } from "./section"
 
@@ -39,10 +28,10 @@ export class RichTextDocumentBuilder {
 
   // Document registries for named resources
   private _colors: Record<string, RTFColor> = {}
-  private _fonts: Record<string, Partial<RTFFont>> = {}
-  private _styles: Record<string, Partial<RTFStyle>> = {}
-  private _lists: Record<string, Partial<RTFList>> = {}
-  private _listOverrides: Record<string, Partial<RTFListOverride>> = {}
+  private _fonts: Record<string, RTFFont> = {}
+  private _styles: Record<string, RTFStyle> = {}
+  private _lists: Record<string, RTFList> = {}
+  private _bookmarks: Record<string, string> = {}
 
   // Sections
   private _sections: SectionBuilder[] = []
@@ -59,26 +48,26 @@ export class RichTextDocumentBuilder {
   }
 
   get computedPageWidth(): number {
-    return toTwips(this._pageSetup.paperWidth, 0)
+    return toTwip(this._pageSetup.paperWidth, 0)
   }
   get computedMarginLeft(): number {
-    return toTwips(this._pageSetup.margin?.left, 0)
+    return toTwip(this._pageSetup.margin?.left, 0)
   }
   get computedMarginRight(): number {
-    return toTwips(this._pageSetup.margin?.right, 0)
+    return toTwip(this._pageSetup.margin?.right, 0)
   }
   get computedContentWidth(): number {
     return this.computedPageWidth - this.computedMarginLeft - this.computedMarginRight
   }
 
   get computedPageHeight(): number {
-    return toTwips(this._pageSetup.paperHeight, 0)
+    return toTwip(this._pageSetup.paperHeight, 0)
   }
   get computedMarginTop(): number {
-    return toTwips(this._pageSetup.margin?.top, 0)
+    return toTwip(this._pageSetup.margin?.top, 0)
   }
   get computedMarginBottom(): number {
-    return toTwips(this._pageSetup.margin?.bottom, 0)
+    return toTwip(this._pageSetup.margin?.bottom, 0)
   }
   get computedContentHeight(): number {
     return this.computedPageHeight - this.computedMarginTop - this.computedMarginBottom
@@ -133,24 +122,24 @@ export class RichTextDocumentBuilder {
     return this
   }
 
-  newFont(value: Pick<RTFFont, "name" | "family"> | Partial<RTFFont>): string {
+  newFont(value: RTFFont): string {
     const alias = `f${Object.keys(this._fonts).length + 1}`
 
     this._fonts[alias] = value
     return alias
   }
-  withFont(alias: string, value: Pick<RTFFont, "name" | "family"> | Partial<RTFFont>): this {
+  withFont(alias: string, value: RTFFont): this {
     this._fonts[alias] = value
     return this
   }
 
-  newStyle(value: Pick<RTFStyle, "type"> | Partial<RTFStyle>): string {
+  newStyle(value: RTFStyle): string {
     const alias = `s${Object.keys(this._styles).length + 1}`
 
     this._styles[alias] = value
     return alias
   }
-  withStyle(alias: string, value: Pick<RTFStyle, "type"> | Partial<RTFStyle>): this {
+  withStyle(alias: string, value: RTFStyle): this {
     this._styles[alias] = value
     return this
   }
@@ -168,22 +157,25 @@ export class RichTextDocumentBuilder {
 
   newList(): string {
     const listAlias = `li${Object.keys(this._lists).length + 1}`
-    const overrideAlias = `lo${Object.keys(this._listOverrides).length + 1}`
 
-    this._lists[listAlias] = {}
-    this._listOverrides[overrideAlias] = { listAlias }
-    return overrideAlias
-  }
-  updateList(alias: string, list: Partial<RTFList>, listOverride: Partial<RTFListOverride>): this {
-    if (!this._listOverrides[alias]) {
-      throw new Error(`List override with alias '${alias}' does not exist`)
+    this._lists[listAlias] = {
+      levels: [],
     }
-    const listAlias = this._listOverrides[alias].listAlias
-    if (!listAlias || !this._lists[listAlias]) {
+    return listAlias
+  }
+  updateList(alias: string, list: Partial<RTFList>): this {
+    if (!this._lists[alias]) {
       throw new Error(`List for override alias '${alias}' does not exist`)
     }
-    this._lists[listAlias] = { ...this._lists[listAlias], ...list }
-    this._listOverrides[alias] = { ...this._listOverrides[alias], ...listOverride, listAlias }
+    this._lists[alias] = { ...this._lists[alias], ...list }
+    return this
+  }
+
+  withBookmark(alias: string, name?: string): this {
+    if (this._bookmarks[alias]) {
+      throw new Error(`Bookmark with alias '${alias}' already exists`)
+    }
+    this._bookmarks[alias] = name || alias
     return this
   }
 
@@ -199,7 +191,7 @@ export class RichTextDocumentBuilder {
       .fonts(this._fonts)
       .styles(this._styles)
       .lists(this._lists)
-      .listOverrides(this._listOverrides)
+      .bookmarks(this._bookmarks)
       .sections(...this._sections.map((s) => s.build()))
     return document
   }

@@ -10,10 +10,10 @@ import {
   RTFSectionFormatting,
   RTFSize,
 } from "../types"
-import { pt, toTwips } from "../utils"
+import { pt, toTwip } from "../utils"
 
 import { RichTextDocumentBuilder } from "."
-import { RTFBuilder, SpecialContent } from "./base"
+import { RTFBuilder, RTFSpecialContent } from "./base"
 import { ParagraphBuilder } from "./paragraph"
 import { TableBuilder } from "./table"
 import { ListBuilder } from "./list"
@@ -78,7 +78,7 @@ class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
     this._lastParagraph = builder
     return builder
   }
-  withText(...items: (string | Partial<RTFCharacterFormatting>)[]): this {
+  withText(...items: (string | RTFSpecialContent | Partial<RTFCharacterFormatting>)[]): this {
     this.lastParagraph.withText(...items)
     return this
   }
@@ -100,10 +100,6 @@ class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
   }
   withExternalLink(url: string, text: string, formatting: Partial<RTFCharacterFormatting> = {}): this {
     this.lastParagraph.withExternalLink(url, text, formatting)
-    return this
-  }
-  withSpecial(code: SpecialContent): this {
-    this.lastParagraph.withSpecial(code)
     return this
   }
   closeParagraph(): this {
@@ -227,32 +223,32 @@ export class SectionBuilder {
   }
 
   get computedPageWidth(): number {
-    return toTwips(
+    return toTwip(
       this._formatting.pageWidth,
       this._formatting.landscape !== this.document.landscape ? this.document.computedPageHeight : this.document.computedPageWidth
     )
   }
   get computedMarginLeft(): number {
-    return toTwips(this._formatting.margin?.left, this.document.computedMarginLeft)
+    return toTwip(this._formatting.margin?.left, this.document.computedMarginLeft)
   }
   get computedMarginRight(): number {
-    return toTwips(this._formatting.margin?.right, this.document.computedMarginRight)
+    return toTwip(this._formatting.margin?.right, this.document.computedMarginRight)
   }
   get computedContentWidth(): number {
     return this.computedPageWidth - this.computedMarginLeft - this.computedMarginRight
   }
 
   get computedPageHeight(): number {
-    return toTwips(
+    return toTwip(
       this._formatting.pageWidth,
       this._formatting.landscape !== this.document.landscape ? this.document.computedPageWidth : this.document.computedPageHeight
     )
   }
   get computedMarginTop(): number {
-    return toTwips(this._formatting.margin?.top, this.document.computedMarginTop)
+    return toTwip(this._formatting.margin?.top, this.document.computedMarginTop)
   }
   get computedMarginBottom(): number {
-    return toTwips(this._formatting.margin?.bottom, this.document.computedMarginBottom)
+    return toTwip(this._formatting.margin?.bottom, this.document.computedMarginBottom)
   }
   get computedContentHeight(): number {
     return this.computedPageHeight - this.computedMarginTop - this.computedMarginBottom

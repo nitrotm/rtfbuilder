@@ -1,27 +1,16 @@
-import {
-  RTFCharacterFormatting,
-  RTFContainerElement,
-  RTFElement,
-  RTFList,
-  RTFListLevel,
-  RTFListNumberFormat,
-  RTFListOverride,
-  RTFPictureData,
-  RTFPictureFormatting,
-} from "../types"
+import { RTFCharacterFormatting, RTFContainerElement, RTFElement, RTFList, RTFListLevel, RTFPictureData, RTFPictureFormatting } from "../types"
 
-import { RTFBuilder, SpecialContent } from "./base"
+import { RTFBuilder, RTFSpecialContent } from "./base"
 import { ParagraphBuilder } from "./paragraph"
 
 export class ListBuilder extends RTFBuilder<RTFContainerElement> {
   private readonly _children: ListItemBuilder[] = []
   private readonly _formatting: Partial<RTFList> = {}
-  private readonly _override: Partial<RTFListOverride> = {}
-  readonly listOverrideAlias: string
+  readonly listAlias: string
 
   constructor(parent: RTFBuilder<unknown>) {
     super(parent)
-    this.listOverrideAlias = this.document.newList()
+    this.listAlias = this.document.newList()
     this.simple()
   }
 
@@ -43,59 +32,55 @@ export class ListBuilder extends RTFBuilder<RTFContainerElement> {
     return this
   }
 
-  type(type: "simple" | "multi" | "hybrid"): this {
-    this._formatting.type = type
-    this.document.updateList(this.listOverrideAlias, this._formatting, this._override)
-    return this
-  }
-
   restartEachSection(): this {
     this._formatting.restartEachSection = true
-    this.document.updateList(this.listOverrideAlias, this._formatting, this._override)
+    this.document.updateList(this.listAlias, this._formatting)
     return this
   }
 
-  levels(...levels: Partial<RTFListLevel>[]): this {
+  level(index: number, level: RTFListLevel): this {
     if (this._children.length > 0) {
-      throw new Error("List levels must be defined before adding list items.")
+      throw new Error("List levels must be defined before adding items.")
+    }
+    if (!this._formatting.levels) {
+      this._formatting.levels = []
+    }
+    this._formatting.levels[index] = level
+    this.document.updateList(this.listAlias, this._formatting)
+    return this
+  }
+  levels(...levels: RTFListLevel[]): this {
+    if (this._children.length > 0) {
+      throw new Error("List levels must be defined before adding items.")
     }
     if (!this._formatting.levels) {
       this._formatting.levels = []
     }
     this._formatting.levels = levels
-    this.document.updateList(this.listOverrideAlias, this._formatting, this._override)
+    this.document.updateList(this.listAlias, this._formatting)
     return this
   }
 
-  levelOverride(level: number, startAt?: number, override?: Partial<RTFListLevel>): this {
-    if (this._children.length > 0) {
-      throw new Error("List levels must be defined before adding list items.")
-    }
-    if (!this._override.levelOverrides) {
-      this._override.levelOverrides = []
-    }
-    this._override.levelOverrides.push({
-      level,
-      startAt,
-      override,
-    })
-    this.document.updateList(this.listOverrideAlias, this._formatting, this._override)
-    return this
-  }
-
-  simple(numberFormat: RTFListNumberFormat = "bullet", levels: number = 9): this {
-    this.type("multi").levels(
+  simple(format: RTFListLevel["format"] = "bullet", levels: number = 9): this {
+    this.levels(
       ...[...Array(levels).keys()].map(() => ({
-        numberFormat,
+        format,
+      }))
+    )
+    return this
+  }
+  custom(...formats: RTFListLevel["format"][]): this {
+    this.levels(
+      ...formats.map((format) => ({
+        format,
       }))
     )
     return this
   }
 
-  with(formatting: Partial<RTFList> = {}, override: Partial<RTFListOverride> = {}): this {
+  with(formatting: Partial<RTFList> = {}): this {
     Object.assign(this._formatting, formatting)
-    Object.assign(this._override, override)
-    this.document.updateList(this.listOverrideAlias, this._formatting, this._override)
+    this.document.updateList(this.listAlias, this._formatting)
     return this
   }
 
@@ -135,7 +120,7 @@ class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
 
   newParagraph(): ParagraphBuilder {
     const builder = new ParagraphBuilder(this).with({
-      listOverrideAlias: this.list.listOverrideAlias,
+      listAlias: this.list.listAlias,
       listLevel: this.level,
       listItem: this._paragraph === null,
     })
@@ -149,7 +134,7 @@ class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
     this._lastParagraph = builder
     return builder
   }
-  withText(...items: (string | Partial<RTFCharacterFormatting>)[]): this {
+  withText(...items: (string | RTFSpecialContent | Partial<RTFCharacterFormatting>)[]): this {
     this.lastParagraph.withText(...items)
     return this
   }
@@ -171,10 +156,6 @@ class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
   }
   withExternalLink(url: string, text: string, formatting: Partial<RTFCharacterFormatting> = {}): this {
     this.lastParagraph.withExternalLink(url, text, formatting)
-    return this
-  }
-  withSpecial(code: SpecialContent): this {
-    this.lastParagraph.withSpecial(code)
     return this
   }
   closeParagraph(): this {

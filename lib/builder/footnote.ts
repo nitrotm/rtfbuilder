@@ -1,6 +1,6 @@
 import { RTFCharacterFormatting, RTFFootnoteElement, RTFPictureData, RTFPictureFormatting } from "../types"
 
-import { RTFBuilder, SpecialContent } from "./base"
+import { RTFBuilder, RTFSpecialContent } from "./base"
 import { CharacterBuilder } from "./character"
 import { ParagraphBuilder } from "./paragraph"
 
@@ -27,27 +27,12 @@ export class FootnoteBuilder extends RTFBuilder<RTFFootnoteElement> {
     return this
   }
 
-  withText(...items: (string | Partial<RTFCharacterFormatting>)[]): this {
-    let last: CharacterBuilder | null = null
-
-    for (const item of items) {
-      if (typeof item === "string") {
-        if (!last) {
-          last = this.newChunk()
-        }
-        last.text(item)
-      } else {
-        last = this.newChunk().with(item)
-      }
-    }
+  withText(...items: (string | RTFSpecialContent | Partial<RTFCharacterFormatting>)[]): this {
+    this.paragraph.withText(...items)
     return this
   }
   withPicture(picture: RTFPictureData, formatting: Partial<RTFPictureFormatting> = {}): this {
-    this.newChunk().picture(picture, formatting)
-    return this
-  }
-  withSpecial(code: SpecialContent): this {
-    this.newChunk().withSpecial(code)
+    this.paragraph.withPicture(picture, formatting)
     return this
   }
 
@@ -61,7 +46,7 @@ export class FootnoteBuilder extends RTFBuilder<RTFFootnoteElement> {
       type: "footnote",
       customMark: this._customMark,
       endnote: this._endnote,
-      content: this.paragraph.build(),
+      content: this.paragraph.with({ footnoteMark: this._customMark || true }).build(),
     }
   }
 }

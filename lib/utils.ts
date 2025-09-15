@@ -1,4 +1,4 @@
-import type { RTFPictureData, RTFPictureType, RTFSize } from "./types"
+import type { RTFBorders, RTFPictureData, RTFPictureType, RTFSize, RTFTableBorders } from "./types"
 
 // ============================================================================
 // Dimension Helper Functions
@@ -46,7 +46,7 @@ export function px(value: number): RTFSize {
  * If input is an object, convert from the specified unit
  * If input is undefined, return defaultValue (default 0 twips)
  */
-export function toTwips(dimension: RTFSize | undefined, defaultValue: number = 0): number {
+export function toTwip(dimension: RTFSize | undefined, defaultValue: number = 0): number {
   if (dimension === undefined) {
     return Math.round(defaultValue)
   }
@@ -83,8 +83,7 @@ export function toMm(dimension: RTFSize | undefined, defaultValue: number = 0): 
     return defaultValue
   }
   if (typeof dimension === "number") {
-    // Assume input in twips, convert to mm
-    return dimension / 56.69291339
+    return dimension / 56.69291339 // Assume input in twips, convert to mm
   }
 
   const { unit, value } = dimension
@@ -104,27 +103,93 @@ export function toMm(dimension: RTFSize | undefined, defaultValue: number = 0): 
 }
 
 /**
- * Convert RTFFontSize to half-points
+ * Convert RTFSize to half-points
  *
- * If input is a number, it's already in half-points
+ * If input is a number, assume it's in twips and convert to points
+ * If input is an object, convert from the specified unit
+ * If input is undefined, return defaultValue (default 0 points)
+ */
+export function toPoint(dimension: RTFSize | undefined, defaultValue: number = 0): number {
+  if (dimension === undefined) {
+    return defaultValue
+  }
+  if (typeof dimension === "number") {
+    return Math.round(dimension / 20) // Assume input in twips, convert to points
+  }
+
+  const { unit, value } = dimension
+
+  switch (unit) {
+    case "mm":
+      return Math.round(value * 2.83464567) // 1 mm = 2.83464567 points
+    case "cm":
+      return Math.round(value * 28.3464567) // 1 cm = 28.3464567 points
+    case "pt":
+      return Math.round(value)
+    case "in":
+      return Math.round(value * 72) // 1 inch = 72 points
+    default:
+      throw new Error(`Invalid font size unit: ${unit as string}`)
+  }
+}
+
+/**
+ * Convert RTFSize to half-points
+ *
+ * If input is a number, assume it's in twips and convert to half-points
  * If input is an object, convert from the specified unit
  * If input is undefined, return defaultValue (default 0 half-points)
  */
-export function toHalfPoints(fontSize: RTFSize | undefined, defaultValue: number = 0): number {
-  if (fontSize === undefined) {
+export function toHalfPoint(dimension: RTFSize | undefined, defaultValue: number = 0): number {
+  if (dimension === undefined) {
     return defaultValue
   }
-  if (typeof fontSize === "number") {
-    return fontSize
+  if (typeof dimension === "number") {
+    return Math.round(dimension / 10) // Assume input in twips, convert to half-points
   }
 
-  const { unit, value } = fontSize
+  const { unit, value } = dimension
 
   switch (unit) {
+    case "mm":
+      return Math.round(value * 5.669291339) // 1 mm = 5.669291339 half-points
+    case "cm":
+      return Math.round(value * 56.69291339) // 1 cm = 56.69291339 half-points
     case "pt":
-      return value * 2 // 1 point = 2 half-points
-    case "px":
-      return Math.round(value * 1.5) // Rough conversion: 1px ≈ 0.75pt
+      return Math.round(value * 2) // 1 point = 2 half-points
+    case "in":
+      return Math.round(value * 144) // 1 inch = 144 half-points
+    default:
+      throw new Error(`Invalid font size unit: ${unit as string}`)
+  }
+}
+
+/**
+ * Convert RTFSize to half-points
+ *
+ * If input is a number, assume it's in twips and convert to one-eightth of a points
+ * If input is an object, convert from the specified unit
+ * If input is undefined, return defaultValue (default 0 one-eightth of a points)
+ */
+export function toEighthPoint(dimension: RTFSize | undefined, defaultValue: number = 0): number {
+  if (dimension === undefined) {
+    return defaultValue
+  }
+  if (typeof dimension === "number") {
+    return Math.round(dimension / 2.5) // Assume input in twips, convert to one-eighth of a points
+  }
+
+  const { unit, value } = dimension
+
+  switch (unit) {
+    case "mm":
+      return Math.round(value * 226.7716535) // 1 mm = 226.7716535 one-eighth of a points
+    case "cm":
+      return Math.round(value * 2267.716535) // 1 cm = 2267.716535 one-eighth of a points
+    case "pt":
+      return Math.round(value * 8) // 1 point = 8 one-eighth of a points
+    case "in":
+      return Math.round(value * 576) // 1 inch = 576 one-eighth of a points
     default:
       throw new Error(`Invalid font size unit: ${unit as string}`)
   }
@@ -252,7 +317,13 @@ async function imageToCanvas(image: HTMLImageElement): Promise<HTMLCanvasElement
 export type RegistryEntry<T> = {
   index: number // Index in the RTF table
   name: string // Entry name
-  item: Partial<T> // The actual resource data
+  item: T // The actual resource data
+}
+
+export type RTFRegistryOptions<T> = {
+  eq: (a: Partial<T>, b: Partial<T>) => boolean
+  prefix?: string
+  startAt?: number
 }
 
 /** Internal item registry */
@@ -260,10 +331,13 @@ export class RTFRegistry<T> {
   private _entries: RegistryEntry<T>[] = []
   private _aliasToIndex: Map<string, number> = new Map()
 
-  constructor(private readonly eq: (a: Partial<T>, b: Partial<T>) => boolean = () => false) {}
+  constructor(private readonly _options: RTFRegistryOptions<T>) {}
 
   get empty(): boolean {
     return this._entries.length === 0
+  }
+  get size(): number {
+    return this._entries.length
   }
 
   has(alias: string | null | undefined): boolean {
@@ -273,8 +347,8 @@ export class RTFRegistry<T> {
     return this._aliasToIndex.has(alias)
   }
 
-  exists(item: Partial<T>): boolean {
-    return this._entries.some((entry) => this.eq(entry.item, item))
+  exists(item: T): boolean {
+    return this._entries.some((entry) => this._options.eq(entry.item, item))
   }
 
   index(alias: string): number {
@@ -301,8 +375,8 @@ export class RTFRegistry<T> {
     }
   }
 
-  register(item: Partial<T>, alias?: string): string {
-    const existingEntry = this._entries.find((entry) => this.eq(entry.item, item))
+  register(item: T, alias?: string): string {
+    const existingEntry = this._entries.find((entry) => this._options.eq(entry.item, item))
 
     if (alias && alias.length === 0) {
       throw new Error("Alias cannot be empty")
@@ -319,15 +393,19 @@ export class RTFRegistry<T> {
     }
 
     const newIndex = this._entries.length
-    const name = alias || `d${newIndex}`
+    const name = alias || `${this._options.prefix || "d"}${newIndex}`
 
     if (this._aliasToIndex.has(name)) {
       throw new Error(`Alias "${name}" is already in use in this registry.`)
     }
 
-    this._entries.push({ index: newIndex, name, item })
+    this._entries.push({ index: newIndex + (this._options.startAt || 0), name, item })
     this._aliasToIndex.set(name, newIndex)
     return name
+  }
+
+  registerAsIndex(item: T, alias?: string): number {
+    return this.index(this.register(item, alias))
   }
 
   copyFrom(other: RTFRegistry<T>): void {
@@ -388,4 +466,47 @@ export function deepCopy<T>(value: T): T {
   }
 
   return value
+}
+
+/** Merge row and cell borders for a cell */
+export function mergeCellBorders(
+  tableBorders: Partial<RTFTableBorders> = {},
+  rowBorders: Partial<RTFTableBorders> = {},
+  cellBorders: Partial<RTFBorders> = {},
+  isFirstRow?: boolean,
+  isLastRow?: boolean,
+  isFirstCell?: boolean,
+  isLastCell?: boolean
+): Partial<RTFBorders> | undefined {
+  const merged: Partial<RTFBorders> = {}
+
+  if (cellBorders.top !== undefined || rowBorders.top !== undefined) {
+    merged.top = cellBorders.top || rowBorders.top
+  } else if (tableBorders.top !== undefined && isFirstRow) {
+    merged.top = tableBorders.top
+  } else if (tableBorders.horizontal !== undefined) {
+    merged.top = tableBorders.horizontal
+  }
+  if (cellBorders.bottom !== undefined || rowBorders.bottom !== undefined) {
+    merged.bottom = cellBorders.bottom || rowBorders.bottom
+  } else if (tableBorders.bottom !== undefined && isLastRow) {
+    merged.bottom = tableBorders.bottom
+  } else if (tableBorders.horizontal !== undefined) {
+    merged.bottom = tableBorders.horizontal
+  }
+  if (cellBorders.left !== undefined || rowBorders.horizontal !== undefined) {
+    merged.left = cellBorders.left || rowBorders.horizontal
+  } else if ((tableBorders.left !== undefined || rowBorders.left !== undefined) && isFirstCell) {
+    merged.left = rowBorders.left || tableBorders.left
+  } else if (tableBorders.vertical !== undefined || rowBorders.vertical !== undefined) {
+    merged.left = rowBorders.vertical || tableBorders.vertical
+  }
+  if (cellBorders.right !== undefined || rowBorders.horizontal !== undefined) {
+    merged.right = cellBorders.right || rowBorders.horizontal
+  } else if ((tableBorders.right !== undefined || rowBorders.right !== undefined) && isLastCell) {
+    merged.right = rowBorders.right || tableBorders.right
+  } else if (tableBorders.vertical !== undefined || rowBorders.vertical !== undefined) {
+    merged.right = rowBorders.vertical || tableBorders.vertical
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined
 }

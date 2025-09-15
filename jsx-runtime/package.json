@@ -26,7 +26,7 @@
   "main": "dist/cjs/jsx-runtime.js",
   "module": "dist/esm/jsx-runtime.js",
   "exports": {
-    ".": {
+    "./jsx-runtime": {
       "types": {
         "import": "./dist/esm/jsx-runtime.d.ts",
         "require": "./dist/cjs/jsx-runtime.d.ts"

@@ -1,17 +1,8 @@
 import { RichTextDocumentModel } from "../document"
-import {
-  RTFBorders,
-  RTFTableBorders,
-  RTFTableCellFormatting,
-  RTFTableElement,
-  RTFTableFormatting,
-  RTFTableRow,
-  RTFTableRowFlag,
-  RTFTableRowFormatting,
-} from "../types"
-import { toTwips } from "../utils"
+import { RTFTableCellFormatting, RTFTableElement, RTFTableFormatting, RTFTableRow, RTFTableRowFlag, RTFTableRowFormatting } from "../types"
+import { mergeCellBorders, toTwip } from "../utils"
 
-import { generateBorderStyle, generateElements, generateShadingPattern, SectionGeometry } from "./base"
+import { generateBorderStyle, generateElements, SectionGeometry } from "./base"
 
 /** Generate table cell formatting control words */
 export function generateTableCellFormatting(model: RichTextDocumentModel, formatting: Partial<RTFTableCellFormatting>): string {
@@ -39,29 +30,16 @@ export function generateTableCellFormatting(model: RichTextDocumentModel, format
   }
 
   // Cell shading
-  if (formatting.shading) {
-    if (formatting.shading.ratio !== undefined) {
-      parts.push(`\\clshdng${Math.max(0, Math.min(10000, Math.round(formatting.shading.ratio * 10000)))}`)
-    }
-    if (formatting.shading.pattern) {
-      // Table cell patterns use 'clbg' prefix instead of 'bg'
-      const pattern = generateShadingPattern(formatting.shading.pattern).replace(/\\bg/, "\\clbg")
-      parts.push(pattern)
-    }
-    if (formatting.shading.foregroundColorAlias) {
-      parts.push(`\\clcfpat${model.colorRegistry.index(formatting.shading.foregroundColorAlias)}`)
-    }
-    if (formatting.shading.backgroundColorAlias) {
-      parts.push(`\\clcbpat${model.colorRegistry.index(formatting.shading.backgroundColorAlias)}`)
-    }
+  if (formatting.backgroundColorAlias !== undefined) {
+    parts.push(`\\clcbpat${model.colorRegistry.index(formatting.backgroundColorAlias)}`)
   }
 
   // Cell padding
   if (formatting.padding !== undefined) {
-    if (formatting.padding.top !== undefined) parts.push(`\\clpadt${toTwips(formatting.padding.top)}`)
-    if (formatting.padding.bottom !== undefined) parts.push(`\\clpadb${toTwips(formatting.padding.bottom)}`)
-    if (formatting.padding.left !== undefined) parts.push(`\\clpadl${toTwips(formatting.padding.left)}`)
-    if (formatting.padding.right !== undefined) parts.push(`\\clpadr${toTwips(formatting.padding.right)}`)
+    if (formatting.padding.top !== undefined) parts.push(`\\clpadt${toTwip(formatting.padding.top)}`)
+    if (formatting.padding.bottom !== undefined) parts.push(`\\clpadb${toTwip(formatting.padding.bottom)}`)
+    if (formatting.padding.left !== undefined) parts.push(`\\clpadl${toTwip(formatting.padding.left)}`)
+    if (formatting.padding.right !== undefined) parts.push(`\\clpadr${toTwip(formatting.padding.right)}`)
   }
   return parts.join("")
 }
@@ -80,13 +58,13 @@ export function generateTableRowFormatting(
   }
 
   // Row height and indents
-  if (formatting.height) parts.push(`\\trrh${toTwips(formatting.height)}`)
-  if (tableFormatting.leftIndent) parts.push(`\\trleft${toTwips(tableFormatting.leftIndent)}`)
-  if (tableFormatting.rightIndent) parts.push(`\\trright${toTwips(tableFormatting.rightIndent)}`)
+  if (formatting.height) parts.push(`\\trrh${toTwip(formatting.height)}`)
+  if (tableFormatting.leftIndent) parts.push(`\\trleft${toTwip(tableFormatting.leftIndent)}`)
+  if (tableFormatting.rightIndent) parts.push(`\\trright${toTwip(tableFormatting.rightIndent)}`)
 
   // Row gaps - use row value or inherit from table cellSpacing
-  const gap = formatting.cellSpacing || tableFormatting.cellSpacing
-  if (gap) parts.push(`\\trgaph${toTwips(gap)}`)
+  const gap = tableFormatting.cellSpacing
+  if (gap) parts.push(`\\trgaph${toTwip(gap)}`)
 
   // Row alignment
   const alignMap: Record<RTFTableFormatting["align"], string> = {
@@ -117,12 +95,12 @@ type TableGeometry = {
 
 /** Generate a table element */
 export function generateTable(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFTableElement): string {
-  const formatting = element.formatting || {}
   const parts: string[] = []
+  const formatting = element.formatting
 
   // Compute table layout
-  const containerWidth = toTwips(formatting.width, geometry.contentWidth)
-  const fixedCellWidth = element.columns.reduce((sum, column) => sum + toTwips(column.width, 0), 0)
+  const containerWidth = toTwip(formatting.width, geometry.contentWidth)
+  const fixedCellWidth = element.columns.reduce((sum, column) => sum + toTwip(column.width, 0), 0)
   const flexibleColumns = element.columns.filter((column) => column.width === undefined)
   const flexibleWeight = flexibleColumns.reduce((sum, column) => sum + (column.weight || 1), 0)
   const flexibleWidth = containerWidth - fixedCellWidth
@@ -130,7 +108,7 @@ export function generateTable(model: RichTextDocumentModel, geometry: SectionGeo
     containerWidth,
     columnWidths: element.columns.map((column) => {
       if (column.width !== undefined) {
-        return toTwips(column.width, 0)
+        return toTwip(column.width, 0)
       }
       return flexibleWeight > 0 ? Math.floor(flexibleWidth * ((column.weight || 1) / flexibleWeight)) : 0
     }),
@@ -141,7 +119,7 @@ export function generateTable(model: RichTextDocumentModel, geometry: SectionGeo
     const isLastRow = index === element.rows.length - 1
 
     // Pass table context to row generation
-    parts.push(generateTableRow(model, geometry, tableGeometry, row, formatting, isFirstRow, isLastRow))
+    parts.push(generateTableRow(model, geometry, tableGeometry, formatting, row, isFirstRow, isLastRow))
   })
   return parts.join("\n")
 }
@@ -151,15 +129,16 @@ export function generateTableRow(
   model: RichTextDocumentModel,
   geometry: SectionGeometry,
   tableGeometry: TableGeometry,
+  tableFormatting: Partial<RTFTableFormatting>,
   row: RTFTableRow,
-  table: Partial<RTFTableFormatting>,
   isFirstRow: boolean,
   isLastRow: boolean
 ): string {
   const parts: string[] = []
+  const formatting = row.formatting
 
   // Table row preamble
-  const rowFormattingData = generateTableRowFormatting(model, table, row.formatting || {})
+  const rowFormattingData = generateTableRowFormatting(model, tableFormatting, formatting)
 
   parts.push("{\\trowd")
   if (rowFormattingData.length > 0) {
@@ -167,21 +146,22 @@ export function generateTableRow(
   }
 
   // Define cell boundaries and properties
-  const formatting = row.formatting || {}
-  const borders = mergeTableRowBorders(table.cellFormatting?.borders, formatting.cellFormatting?.borders, isFirstRow, isLastRow)
   let cellX = 0
 
   row.cells.forEach((cell, index) => {
     const isFirstCell = index === 0
     const isLastCell = index === row.cells!.length - 1
     const cellFormatting = cell.formatting || {}
+    const borders = mergeCellBorders(tableFormatting.borders, formatting.borders, cellFormatting.borders, isFirstRow, isLastRow, isFirstCell, isLastCell)
+    const borderX = (toTwip(borders?.left?.width) + toTwip(borders?.right?.width)) / 2
 
-    cellX += tableGeometry.columnWidths[index] || 0
+    cellX += Math.max(0, (tableGeometry.columnWidths[index] || 0) - borderX)
     parts.push(
       generateTableCellFormatting(model, {
         ...cellFormatting,
-        borders: mergeCellBorders(borders, cellFormatting.borders, isFirstCell, isLastCell),
-        padding: cellFormatting.padding || formatting.cellFormatting?.padding || table.cellFormatting?.padding,
+        borders,
+        backgroundColorAlias: cellFormatting.backgroundColorAlias || formatting.backgroundColorAlias || tableFormatting.backgroundColorAlias,
+        padding: cellFormatting.padding || tableFormatting.cellPadding,
       })
     )
     parts.push(`\\cellx${cellX}`)
@@ -201,58 +181,4 @@ export function generateTableRow(
 
   parts.push("\\row}")
   return parts.join("")
-}
-
-/** Merge table and row borders for a row */
-function mergeTableRowBorders(
-  tableBorders: Partial<RTFTableBorders> = {},
-  rowBorders: Partial<RTFTableBorders> = {},
-  isFirstRow?: boolean,
-  isLastRow?: boolean
-) {
-  const merged: typeof rowBorders = {}
-
-  // Row borders take precedence over table borders
-  if (rowBorders.top || (tableBorders.top && isFirstRow)) {
-    merged.top = rowBorders.top || tableBorders.top
-  }
-  if (rowBorders.bottom || (tableBorders.bottom && isLastRow)) {
-    merged.bottom = rowBorders.bottom || tableBorders.bottom
-  }
-  if (rowBorders.left || tableBorders.left) {
-    merged.left = rowBorders.left || tableBorders.left
-  }
-  if (rowBorders.right || tableBorders.right) {
-    merged.right = rowBorders.right || tableBorders.right
-  }
-  if (rowBorders.horizontal || tableBorders.horizontal) {
-    merged.horizontal = rowBorders.horizontal || tableBorders.horizontal
-  }
-  if (rowBorders.vertical || tableBorders.vertical) {
-    merged.vertical = rowBorders.vertical || tableBorders.vertical
-  }
-  return merged
-}
-
-/** Merge row and cell borders for a cell */
-function mergeCellBorders(rowBorders: Partial<RTFTableBorders> = {}, cellBorders: Partial<RTFBorders> = {}, isFirstCell?: boolean, isLastCell?: boolean) {
-  const merged: typeof cellBorders = {}
-
-  // Cell borders take precedence over row borders
-  // For cells, use horizontal borders from rows as top/bottom
-  if (cellBorders.top || rowBorders.horizontal) {
-    merged.top = cellBorders.top || rowBorders.horizontal
-  }
-  if (cellBorders.bottom || rowBorders.horizontal) {
-    merged.bottom = cellBorders.bottom || rowBorders.horizontal
-  }
-
-  // Use vertical borders from rows for left/right on edge cells
-  if (cellBorders.left || (isFirstCell && rowBorders.left) || (!isFirstCell && rowBorders.vertical)) {
-    merged.left = cellBorders.left || (isFirstCell ? rowBorders.left : rowBorders.vertical)
-  }
-  if (cellBorders.right || (isLastCell && rowBorders.right) || (!isLastCell && rowBorders.vertical)) {
-    merged.right = cellBorders.right || (isLastCell ? rowBorders.right : rowBorders.vertical)
-  }
-  return merged
 }

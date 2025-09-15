@@ -46,7 +46,7 @@
     <xsd:attribute name="characterSet" type="s:ST_String" use="optional" default="ISO-8859-1" />
   </xsd:complexType>
   <xsd:simpleType name="ST_DecimalNumberOrPercent">
-    <xsd:union memberTypes="s:ST_Percentage" />
+    <xsd:union memberTypes="ST_DecimalNumber s:ST_Percentage" />
   </xsd:simpleType>
   <xsd:simpleType name="ST_DecimalNumber">
     <xsd:restriction base="xsd:integer" />

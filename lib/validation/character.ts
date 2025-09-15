@@ -36,7 +36,7 @@ export function validateCharacterFormatting(model: RichTextDocumentModel, format
   validateRTFSize(formatting.kerning, "kerning", true)
   validateRTFSize(formatting.characterSpacing, "characterSpacing", true, true)
   if (formatting.horizontalScaling !== undefined) {
-    if (formatting.horizontalScaling < 20 || formatting.horizontalScaling > 200) {
+    if (formatting.horizontalScaling < 0.2 || formatting.horizontalScaling > 2.0) {
       throw new Error(`Horizontal scaling must be between 20-200 percent, got ${formatting.horizontalScaling}`)
     }
   }
@@ -58,14 +58,6 @@ export function validatePictureFormatting(_model: RichTextDocumentModel, formatt
   validateRTFSize(formatting.displayWidth, "displayWidth")
   validateRTFSize(formatting.displayHeight, "displayHeight")
 
-  // Validate scale factors (must be positive)
-  if (formatting.scaleX !== undefined && formatting.scaleX <= 0) {
-    throw new Error(`Picture scaleX must be positive, got ${formatting.scaleX}`)
-  }
-  if (formatting.scaleY !== undefined && formatting.scaleY <= 0) {
-    throw new Error(`Picture scaleY must be positive, got ${formatting.scaleY}`)
-  }
-
   // Validate crop values (must be non-negative)
   if (formatting.cropTop !== undefined && formatting.cropTop < 0) {
     throw new Error(`Picture cropTop must be non-negative, got ${formatting.cropTop}`)
@@ -84,18 +76,11 @@ export function validatePictureFormatting(_model: RichTextDocumentModel, formatt
 /**
  * Validate hyperlink properties
  */
-export function validateHyperlink(_model: RichTextDocumentModel, link: RTFHyperlink): void {
+export function validateHyperlink(model: RichTextDocumentModel, link: RTFHyperlink): void {
   switch (link.type) {
     case "bookmark":
-      if (!link.bookmark || link.bookmark.length === 0) {
-        throw new Error("Hyperlink bookmark cannot be empty")
-      }
-      if (link.bookmark.length > 40) {
-        throw new Error(`Hyperlink bookmark name cannot exceed 40 characters, got ${link.bookmark.length}`)
-      }
-      // RTF bookmark names have restrictions
-      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(link.bookmark)) {
-        throw new Error(`Hyperlink bookmark name must start with letter or underscore and contain only letters, numbers, and underscores: "${link.bookmark}"`)
+      if (!model.bookmarkRegistry.has(link.bookmarkAlias)) {
+        throw new Error(`Bookmark "${link.bookmarkAlias}" not found.`)
       }
       break
 
@@ -105,18 +90,6 @@ export function validateHyperlink(_model: RichTextDocumentModel, link: RTFHyperl
       }
       if (link.url.length > 2048) {
         throw new Error(`Hyperlink URL cannot exceed 2048 characters, got ${link.url.length}`)
-      }
-      break
-
-    case "email":
-      if (!link.email?.address || link.email.address.length === 0) {
-        throw new Error("Hyperlink email address cannot be empty")
-      }
-      if (link.email.subject && link.email.subject.length > 255) {
-        throw new Error(`Hyperlink email subject cannot exceed 255 characters, got ${link.email.subject.length}`)
-      }
-      if (link.email.body && link.email.body.length > 2000) {
-        throw new Error(`Hyperlink email body cannot exceed 2000 characters, got ${link.email.body.length}`)
       }
       break
 
@@ -130,8 +103,8 @@ export function validateHyperlink(_model: RichTextDocumentModel, link: RTFHyperl
  */
 export function validateCharacter(model: RichTextDocumentModel, element: RTFCharacterElement): void {
   validateCharacterFormatting(model, element.formatting)
-  if (element.bookmarkName !== undefined && element.bookmarkName.length === 0) {
-    throw new Error(`Bookmark name cannot be empty`)
+  if (element.bookmarkAlias !== undefined && !model.bookmarkRegistry.has(element.bookmarkAlias)) {
+    throw new Error(`Bookmark "${element.bookmarkAlias}" not found.`)
   }
   if (element.link?.type !== undefined) {
     validateHyperlink(model, element.link)
@@ -164,7 +137,9 @@ function validateTextContentElement(model: RichTextDocumentModel, item: RTFChara
     case "nonBreakingHyphen":
     case "optionalHyphen":
     case "pageNumber":
-    case "dateTime":
+    case "totalPages":
+    case "date":
+    case "time":
       // These are simple elements with no additional properties to validate
       break
 

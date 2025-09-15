@@ -37,9 +37,7 @@ builder.withSection((section) => {
     p.center()
     p.border("bottom", { width: pt(1), colorAlias: "blue" })
     p.spaceAfter(pt(12))
-    p.withText({ bold: true, fontSize: pt(14) }, "RTF Sections Demo")
-      .withSpecial("lineBreak")
-      .withText({ italic: true, fontSize: pt(10) }, "First Page Header")
+    p.withText({ bold: true, fontSize: pt(14) }, "RTF Sections Demo", { special: "lineBreak" }, { italic: true, fontSize: pt(10) }, "First Page Header")
   })
 
   // First page footer
@@ -47,15 +45,12 @@ builder.withSection((section) => {
     p.center()
     p.border("top", { width: pt(1), colorAlias: "blue" })
     p.spaceBefore(pt(12))
-    p.withText({ fontSize: pt(10) }, "Document Created: ")
-      .withSpecial("date")
-      .withText(" at ")
-      .withSpecial("time")
+    p.withText({ fontSize: pt(10) }, "Document Created: ", { special: "date" }, " at ", { special: "time" })
   })
 
   // Header and Footer for other pages in section 1
-  section.header.withText({ italic: true }, "Section 1 Header - Page ").withSpecial("pageNumber")
-  section.footer.withText("Section 1 Footer - Page ").withSpecial("pageNumber")
+  section.header.withText({ italic: true }, "Section 1 Header - Page ", { special: "pageNumber" })
+  section.footer.withText("Section 1 Footer - Page ", { special: "pageNumber" }, " of ", { special: "totalPages" })
 
   section.body.withTitle("Section 1: Basic Section with first page Headers and Footers").closeParagraph()
 
@@ -91,7 +86,7 @@ builder.withSection((section) => {
     p.center()
     p.border("top", { width: pt(1), colorAlias: "green" })
     p.spaceBefore(pt(12)).spaceAfter(pt(0))
-    p.withText("Page ").withSpecial("pageNumber").withText(" - Two Column Layout")
+    p.withText("Page ", { special: "pageNumber" }, " - Two Column Layout")
   })
 
   // Content for Section 2
@@ -150,7 +145,7 @@ builder.withSection((section) => {
   // Header for landscape section
   section.header.withParagraph((p) => {
     p.right()
-    p.withText({ italic: true }, "Section 3: Landscape Orientation", {}, " - Page ").withSpecial("pageNumber")
+    p.withText({ italic: true }, "Section 3: Landscape Orientation", {}, " - Page ", { special: "pageNumber" })
   })
 
   // Footer for landscape section
@@ -167,7 +162,7 @@ builder.withSection((section) => {
 
   section.body.withHeading("Wide Table Example", 2)
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.cellPadding({ top: pt(5), right: pt(8), bottom: pt(5), left: pt(8) })
 
     // Header row
@@ -201,7 +196,7 @@ builder.withSection((section) => {
     p.right()
     p.border("bottom", { width: pt(1), colorAlias: "blue" })
     p.spaceAfter(pt(12))
-    p.withText({ bold: true }, "Chapter 4: Mirror Margins", {}, " - ").withSpecial("pageNumber")
+    p.withText({ bold: true }, "Chapter 4: Mirror Margins", {}, " - ", { special: "pageNumber" })
   })
 
   // Even page header (left pages in book layout)
@@ -209,7 +204,7 @@ builder.withSection((section) => {
     p.left()
     p.border("bottom", { width: pt(1), colorAlias: "blue" })
     p.spaceAfter(pt(12))
-    p.withSpecial("pageNumber").withText(" - ", { bold: true }, "RTF Section Demo")
+    p.withText({ special: "pageNumber" }, " - ", { bold: true }, "RTF Section Demo")
   })
 
   // Odd page footer

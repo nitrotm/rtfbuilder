@@ -1,7 +1,7 @@
 import { RichTextDocumentModel } from "../document"
 import { RTFParagraphElement, RTFParagraphFormatting } from "../types"
 
-import { validateRTFBorders, validateRTFShading, validateRTFSize } from "./base"
+import { validateRTFBorders, validateRTFSize } from "./base"
 import { validateCharacter } from "./character"
 
 /**
@@ -21,11 +21,15 @@ export function validateParagraphFormatting(model: RichTextDocumentModel, format
 
   // Style & effects
   validateRTFBorders(model, formatting.borders, "borders")
-  validateRTFShading(model, formatting.shading)
+
+  // Validate color aliases
+  if (formatting.backgroundColorAlias !== undefined && !model.colorRegistry.has(formatting.backgroundColorAlias)) {
+    throw new Error(`Background color "${formatting.backgroundColorAlias}" not found.`)
+  }
 
   // List formatting
-  if (formatting.listOverrideAlias !== undefined && !model.listOverrideRegistry.has(formatting.listOverrideAlias)) {
-    throw new Error(`List override "${formatting.listOverrideAlias}" not found.`)
+  if (formatting.listAlias !== undefined && !model.listRegistry.has(formatting.listAlias)) {
+    throw new Error(`List "${formatting.listAlias}" not found.`)
   }
   if (formatting.listLevel !== undefined) {
     if (!Number.isInteger(formatting.listLevel) || formatting.listLevel < 0 || formatting.listLevel > 8) {

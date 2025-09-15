@@ -6,11 +6,10 @@ import {
   RTFParagraphFormatting,
   RTFPictureData,
   RTFPictureFormatting,
-  RTFShadingPattern,
   RTFSize,
 } from "../types"
 
-import { RTFBuilder, SpecialContent } from "./base"
+import { RTFBuilder, RTFSpecialContent } from "./base"
 import { CharacterBuilder } from "./character"
 import { pt } from "../utils"
 
@@ -32,7 +31,7 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
     f(this.newChunk())
     return this
   }
-  withText(...items: (string | Partial<RTFCharacterFormatting>)[]): this {
+  withText(...items: (string | RTFSpecialContent | Partial<RTFCharacterFormatting>)[]): this {
     let last: CharacterBuilder | null = null
 
     for (const item of items) {
@@ -41,6 +40,11 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
           last = this.newChunk()
         }
         last.text(item)
+      } else if ("special" in item) {
+        if (!last) {
+          last = this.newChunk()
+        }
+        last.special(item.special)
       } else {
         last = this.newChunk().with(item)
       }
@@ -71,10 +75,6 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
   }
   withExternalLink(url: string, text: string, formatting: Partial<RTFCharacterFormatting> = {}): this {
     this.newChunk().externalLink(url).with(formatting).text(text)
-    return this
-  }
-  withSpecial(code: SpecialContent): this {
-    this.newChunk().withSpecial(code)
     return this
   }
 
@@ -113,7 +113,7 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
     return this
   }
 
-  lineSpacingRule(rule: "single" | "onehalf" | "double" | "multiple" | "exact" | "atleast"): this {
+  lineSpacingRule(rule: "exact" | "auto"): this {
     this._formatting.lineSpacingRule = rule
     return this
   }
@@ -182,21 +182,8 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
     return this
   }
 
-  shading(ratio: number, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    this._formatting.shading = {
-      ratio,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
-    return this
-  }
-
-  shadingPattern(pattern: RTFShadingPattern, foregroundColorAlias?: string, backgroundColorAlias?: string): this {
-    this._formatting.shading = {
-      pattern,
-      foregroundColorAlias,
-      backgroundColorAlias,
-    }
+  backgroundColor(backgroundColorAlias: string): this {
+    this._formatting.backgroundColorAlias = backgroundColorAlias
     return this
   }
 

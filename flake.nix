@@ -75,6 +75,7 @@
                   echo "$1:"
                   tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$1" "$DEVENV_ROOT/demo/outputs/$1.docx"
                   tsx "$DEVENV_ROOT/demo/cli.ts" --validate "$1" "$DEVENV_ROOT/demo/outputs/$1.rtf"
+                  validate-ooxml "$DEVENV_ROOT/demo/outputs/$1.docx"
                 '';
                 run-demos.exec = ''
                   set -eou pipefail
@@ -84,15 +85,30 @@
                     echo
                   done
                 '';
+                cat-ooxml.exec = ''
+                  set -eou pipefail
+
+                  unzip -p "$1" "''${2:-word/document.xml}" | xmllint --format -
+                '';
                 validate-ooxml.exec = ''
                   set -eou pipefail
 
-                  xml_validation() {
-                    echo -n "$2:"
+                  xml_cat() {
                     unzip -p "$1" "$2" | \
                       xmllint --format - | \
-                      xmllint --schema "$3" --noout - || \
-                      (unzip -p "$1" "$2" | xmllint --format - | cat -n ; exit 1)
+                      sed 's|http://schemas.openxmlformats.org/officeDocument/2006/extended-properties|http://purl.oclc.org/ooxml/officeDocument/extendedProperties|g' | \
+                      sed 's|http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes|http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes|g' | \
+                      sed 's|http://schemas.openxmlformats.org/officeDocument/2006/relationships|http://purl.oclc.org/ooxml/officeDocument/relationships|g' | \
+                      sed 's|http://schemas.openxmlformats.org/wordprocessingml/2006/main|http://purl.oclc.org/ooxml/wordprocessingml/main|g' | \
+                      sed 's|http://schemas.openxmlformats.org/drawingml/2006/main|http://purl.oclc.org/ooxml/drawingml/main|g' | \
+                      sed 's|http://schemas.openxmlformats.org/drawingml/2006/picture|http://purl.oclc.org/ooxml/drawingml/picture|g' | \
+                      sed 's|http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing|http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing|g'
+                  }
+
+                  xml_validation() {
+                    echo -n "$2:"
+                    xml_cat "$1" "$2" | xmllint --schema "$3" --noout - || \
+                      (xml_cat "$1" "$2" | cat -n ; exit 1)
                   }
 
                   xml_validation "$1" "\\[Content_Types\\].xml" "$DEVENV_ROOT/schema/ooxml/opc-contentTypes.xsd"
@@ -100,10 +116,21 @@
                   xml_validation "$1" docProps/app.xml "$DEVENV_ROOT/schema/ooxml/shared-documentPropertiesExtended.xsd"
                   xml_validation "$1" _rels/.rels "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
                   xml_validation "$1" word/_rels/document.xml.rels "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
-                  xml_validation "$1" word/document.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
-                  xml_validation "$1" word/styles.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
-                  xml_validation "$1" word/settings.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
-                  xml_validation "$1" word/fontTable.xml "$DEVENV_ROOT/schema/ooxml/wml.xsd"
+
+                  wml_files=(
+                    word/document.xml
+                    word/styles.xml
+                    word/settings.xml
+                    word/fontTable.xml
+                    word/numbering.xml
+                  )
+                  wml_files+=(
+                    $(unzip -lqq "$1" | grep -o -E 'word/(header|firstHeader|evenHeader|footer|firstFooter|evenFooter)[0-9]+\.xml$' || echo)
+                  )
+                  echo "''${wml_files[@]}"
+                  for i in "''${wml_files[@]}"; do
+                    xml_validation "$1" "$i" "$DEVENV_ROOT/schema/ooxml/wml.xsd"
+                  done
                 '';
               };
             }

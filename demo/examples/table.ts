@@ -3,9 +3,11 @@ import { RichTextDocumentBuilder, pt, mm, inch } from "../../lib"
 const builder = new RichTextDocumentBuilder()
 
 // Setup colors for the demo
-builder.withColor("darkBlue", { red: 0, green: 0, blue: 139 })
+builder.withColor("white", { red: 255, green: 255, blue: 255 })
 builder.withColor("lightGray", { red: 220, green: 220, blue: 220 })
-builder.withColor("darkGray", { red: 128, green: 128, blue: 128 })
+builder.withColor("mediumGray", { red: 128, green: 128, blue: 128 })
+builder.withColor("darkGray", { red: 64, green: 64, blue: 64 })
+builder.withColor("darkBlue", { red: 0, green: 0, blue: 139 })
 builder.withColor("green", { red: 0, green: 128, blue: 0 })
 builder.withColor("red", { red: 255, green: 0, blue: 0 })
 builder.withColor("yellow", { red: 255, green: 255, blue: 0 })
@@ -46,12 +48,12 @@ builder.withSection((section) => {
   section.body.withHeading("2. Table with Borders", 1)
   section.body.withText("Tables can have various border styles:").closeParagraph()
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.cellPadding({ top: pt(5), right: pt(5), bottom: pt(5), left: pt(5) })
     table.column(2, undefined, 2)
 
     table.withHeaderRow((row) => {
-      row.cellBorder("bottom", { width: pt(2), colorAlias: "darkBlue" })
+      row.border("bottom", { width: pt(2), colorAlias: "darkBlue" })
       row.withCell((cell) => cell.withText({ bold: true }, "Product"))
       row.withCell((cell) => cell.withText({ bold: true }, "Price"))
       row.withCell((cell) => cell.withText({ bold: true }, "Stock"))
@@ -78,13 +80,13 @@ builder.withSection((section) => {
 
     table.withRow((row) => {
       row.withCell((cell) => {
-        cell.border("all", { width: pt(2), colorAlias: "red" })
+        cell.border("all", { width: pt(2), colorAlias: "red", style: "dotted" })
         cell.withText("Dotted Red Border")
       })
 
       row.withCell((cell) => {
         cell.border("all", { width: pt(1), colorAlias: "green", style: "dashed" })
-        cell.shading(0.2) // 20% gray shading
+        cell.backgroundColor("lightGray")
         cell.withText("Dashed Green + Shading")
       })
 
@@ -96,17 +98,17 @@ builder.withSection((section) => {
 
     table.withRow((row) => {
       row.withCell((cell) => {
-        cell.shading(0.5) // 50% gray shading
+        cell.backgroundColor("mediumGray")
         cell.withText("50% Gray Shading")
       })
 
       row.withCell((cell) => {
-        cell.shading(0.75) // 75% gray shading
+        cell.backgroundColor("darkGray")
         cell.withText("75% Gray Shading")
       })
 
       row.withCell((cell) => {
-        cell.shading(1.0, "yellow") // Yellow background
+        cell.backgroundColor("yellow")
         cell.withText("Yellow Background")
       })
     })
@@ -116,7 +118,7 @@ builder.withSection((section) => {
   section.body.withHeading("4. Cell Alignment", 1)
   section.body.withText("Cells can have different horizontal alignments:").closeParagraph()
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.cellPadding({ top: pt(10), right: pt(10), bottom: pt(10), left: pt(10) })
 
     table.withRow((row) => {
@@ -135,7 +137,7 @@ builder.withSection((section) => {
   })
   section.body.withText("Cells can have different vertical alignments:").closeParagraph()
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.cellPadding({ top: pt(10), right: pt(10), bottom: pt(10), left: pt(10) })
 
     table.withRow((row) => {
@@ -162,7 +164,7 @@ builder.withSection((section) => {
   section.body.withHeading("5. Cell Merging", 1)
   section.body.withText("Cells can be merged horizontally and vertically:").closeParagraph()
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.cellPadding({ top: pt(5), right: pt(5), bottom: pt(5), left: pt(5) })
 
     // Row 1: Horizontal merge
@@ -211,18 +213,18 @@ builder.withSection((section) => {
   section.body.withHeading("6. Complex Table Layout", 1)
   section.body.withText("A complex table combining multiple features:").closeParagraph()
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1), colorAlias: "darkGray" })
+    table.border("all", { width: pt(1), colorAlias: "darkGray" })
     table.cellPadding({ top: pt(8), right: pt(8), bottom: pt(8), left: pt(8) })
 
     // Header row with merged cells
     table.withHeaderRow((row) => {
-      row.cellBorder("bottom", { width: pt(2), colorAlias: "darkBlue" })
+      row.border("bottom", { width: pt(2), colorAlias: "darkBlue" })
       row.height(pt(30))
 
       row.withCell((cell) => {
         cell.hspan("first")
         cell.valign("center")
-        cell.shading(0.9, undefined, "lightGray")
+        cell.backgroundColor("mediumGray")
         cell.withText({ bold: true, fontSize: pt(14) }, "Sales Report Q4 2024")
       })
       row.withCell((cell) => {
@@ -238,7 +240,7 @@ builder.withSection((section) => {
 
     // Sub-header row
     table.withRow((row) => {
-      row.cellBorder("bottom", { width: pt(1) })
+      row.border("bottom", { width: pt(1) })
 
       row.withCell((cell) => {
         cell.withText({ bold: true }, "Region")
@@ -256,10 +258,11 @@ builder.withSection((section) => {
 
     // Data rows with alternating shading
     table.withRow((row) => {
-      row.cellShading(0.1) // Light row shading
+      row.backgroundColor("lightGray")
 
       row.withCell((cell) => {
         cell.vspan("first")
+        cell.backgroundColor("white")
         cell.withText({ bold: true }, "North America")
       })
       row.withCell((cell) => {
@@ -289,10 +292,11 @@ builder.withSection((section) => {
     })
 
     table.withRow((row) => {
-      row.cellShading(0.1) // Light row shading
+      row.backgroundColor("lightGray")
 
       row.withCell((cell) => {
         cell.vspan("first")
+        cell.backgroundColor("white")
         cell.withText({ bold: true }, "Europe")
       })
       row.withCell((cell) => {
@@ -323,8 +327,8 @@ builder.withSection((section) => {
 
     // Total row
     table.withRow((row) => {
-      row.cellBorder("top", { width: pt(2) })
-      row.cellShading(0.5, undefined, "lightGray")
+      row.border("top", { width: pt(2) })
+      row.backgroundColor("lightGray")
 
       row.withCell((cell) => {
         cell.hspan("first")
@@ -347,7 +351,7 @@ builder.withSection((section) => {
   section.body.withText("Left-aligned table:").closeParagraph()
   section.body.withTable((table) => {
     table.align("left")
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.width(inch(3))
 
     table.withRow((row) => {
@@ -358,7 +362,7 @@ builder.withSection((section) => {
   section.body.withText("Center-aligned table:").closeParagraph()
   section.body.withTable((table) => {
     table.align("center")
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.width(inch(3))
 
     table.withRow((row) => {
@@ -369,7 +373,7 @@ builder.withSection((section) => {
   section.body.withText("Right-aligned table:").closeParagraph()
   section.body.withTable((table) => {
     table.align("right")
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.width(inch(3))
 
     table.withRow((row) => {
@@ -382,7 +386,7 @@ builder.withSection((section) => {
   section.body.withHeading("8. Row Properties", 1)
   section.body.withText("Rows can have special properties:").closeParagraph()
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
 
     // Header row that repeats on new pages
     table.withHeaderRow((row) => {

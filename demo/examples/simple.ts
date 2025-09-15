@@ -5,6 +5,7 @@ const builder = new RichTextDocumentBuilder()
 // Add some colors
 builder.withColor("red", { red: 255, green: 0, blue: 0 })
 builder.withColor("blue", { red: 0, green: 0, blue: 255 })
+builder.withColor("gray", { red: 128, green: 128, blue: 128 })
 
 // Add some fonts
 builder.withFont("arial", { name: "Arial", family: "swiss" })
@@ -40,7 +41,7 @@ builder.withSection((section) => {
 
   // Create a table with borders
   section.body.withTable((table) => {
-    table.cellBorder("all", { width: pt(1) })
+    table.border("all", { width: pt(1) })
     table.cellPadding({ top: pt(5), right: pt(5), bottom: pt(5), left: pt(5) })
 
     table.withHeaderRow((row) => {
@@ -54,7 +55,7 @@ builder.withSection((section) => {
         cell.withText("Dotted blue border")
       })
       row.withCell((cell) => {
-        cell.shading(0.5)
+        cell.backgroundColor("gray")
         cell.withText("Shaded cell")
       })
     })

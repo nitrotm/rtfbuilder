@@ -8,6 +8,8 @@ builder.withColor("blue", { red: 0, green: 0, blue: 255 })
 builder.withColor("green", { red: 0, green: 128, blue: 0 })
 builder.withColor("orange", { red: 255, green: 165, blue: 0 })
 builder.withColor("purple", { red: 128, green: 0, blue: 128 })
+builder.withColor("veryLightGray", { red: 240, green: 240, blue: 240 })
+builder.withColor("lightGray", { red: 220, green: 220, blue: 220 })
 builder.withColor("darkGray", { red: 64, green: 64, blue: 64 })
 builder.withColor("lightBlue", { red: 173, green: 216, blue: 230 })
 builder.withColor("yellow", { red: 255, green: 255, blue: 0 })
@@ -219,15 +221,15 @@ builder.withSection((section) => {
   section.body
     .withText(
       "Horizontal scaling: ",
-      { horizontalScaling: 75 },
+      { horizontalScaling: 0.75 },
       "75%",
       {},
       " | ",
-      { horizontalScaling: 100 },
+      { horizontalScaling: 1.0 },
       "100%",
       {},
       " | ",
-      { horizontalScaling: 150 },
+      { horizontalScaling: 1.5 },
       "150%"
     )
     .closeParagraph()
@@ -382,15 +384,15 @@ builder.withSection((section) => {
   section.body.withHeading("10. Paragraph Shading", 1)
   section.body.withText("Paragraphs can have background shading:").closeParagraph()
   section.body.withParagraph((p) => {
-    p.shading(0.1) // 10% gray
+    p.backgroundColor("veryLightGray")
     p.withText("Paragraph with 10% gray shading.")
   })
   section.body.withParagraph((p) => {
-    p.shading(0.25) // 25% gray
+    p.backgroundColor("lightGray")
     p.withText("Paragraph with 25% gray shading.")
   })
   section.body.withParagraph((p) => {
-    p.shading(0.5, undefined, "lightBlue") // 50% with light blue background
+    p.backgroundColor("lightBlue")
     p.withText("Paragraph with 50% shading and light blue background.")
   })
 
@@ -430,7 +432,7 @@ builder.withSection((section) => {
     p.spaceBefore(pt(12)).spaceAfter(pt(6))
     p.lineSpacing(pt(18))
     p.border("all", { width: pt(1), colorAlias: "darkGray" })
-    p.shading(0.05)
+    p.backgroundColor("veryLightGray")
     p.withText(
       "This paragraph demonstrates ",
       { bold: true, colorAlias: "blue" },

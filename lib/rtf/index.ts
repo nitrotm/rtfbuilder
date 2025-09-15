@@ -5,7 +5,6 @@ import {
   generateColorTable,
   generateDocumentInfo,
   generateFontTable,
-  generateListOverrideTable,
   generateListTable,
   generatePageSetup,
   generateStyleTable,
@@ -51,12 +50,12 @@ export class RTFDocument extends AbstractRichTextDocument<string> {
 
     // Font table
     if (!this.model.fontRegistry.empty) {
-      parts.push(generateFontTable(this.model.fontRegistry))
+      parts.push(generateFontTable(this.model))
     }
 
     // Color table
     if (!this.model.colorRegistry.empty) {
-      parts.push(generateColorTable(this.model.colorRegistry))
+      parts.push(generateColorTable(this.model))
     }
 
     // Style table
@@ -66,8 +65,7 @@ export class RTFDocument extends AbstractRichTextDocument<string> {
 
     // List/override table
     if (!this.model.listRegistry.empty) {
-      parts.push(generateListTable(this.model.listRegistry))
-      parts.push(generateListOverrideTable(this.model.listRegistry, this.model.listOverrideRegistry))
+      parts.push(generateListTable(this.model))
     }
 
     // Document info

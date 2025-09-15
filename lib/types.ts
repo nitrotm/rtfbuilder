@@ -36,8 +36,8 @@ export type RTFPageSetup = {
 
   // Footnotes
   footnotePosition: "bottom" | "beneath" | "section" | "document" // \ftnbj, \ftntj, \endnotes, \enddoc
-  footnoteNumbering: "arabic" | "lowercase" | "uppercase" | "roman-lower" | "roman-upper" | "chicago" // \ftnnar, \ftnnalc, etc.
-  endnoteNumbering: "arabic" | "lowercase" | "uppercase" | "roman-lower" | "roman-upper" | "chicago" // \aftnnar, \aftnnalc, etc.
+  footnoteNumbering: "decimal" | "lowercase" | "uppercase" | "lowerRoman" | "upperRoman" | "chicago" // \ftnnar, \ftnnalc, etc.
+  endnoteNumbering: "decimal" | "lowercase" | "uppercase" | "lowerRoman" | "upperRoman" | "chicago" // \aftnnar, \aftnnalc, etc.
   footnoteRestart: "page" | "section" | "continuous" // \ftnrstpg, \ftnrestart, \ftnrstcont
   footnoteStartNumber: number // \ftnstartN
   endnoteStartNumber: number // \aftnstart
@@ -52,12 +52,10 @@ export type RTFViewSettings = {
 
 /** Typography settings - use Partial<RTFTypographySettings> when optional */
 export type RTFTypographySettings = {
-  widowControl: boolean // \widowctrl
   autoHyphenation: boolean // \hyphauto
   hyphenationHotZone: RTFSize // \hyphhotzN
   consecutiveHyphens: number // \hyphconsecN
-  contextualSpacing: boolean // \contextualspace
-  defaultTabWidth: RTFSize // \deftabN
+  tabWidth: RTFSize // \deftabN
   hyphenateCaps: boolean // \hyphcaps
 }
 
@@ -103,29 +101,6 @@ export type RTFTableBorders = RTFBorders & {
   vertical: Partial<RTFBorder>
 }
 
-/** Shading pattern types */
-export type RTFShadingPattern =
-  | "horizontal" // \bghoriz - horizontal lines
-  | "vertical" // \bgvert - vertical lines
-  | "forwardDiagonal" // \bgfdiag - forward diagonal (\\\\)
-  | "backwardDiagonal" // \bgbdiag - backward diagonal (////)
-  | "cross" // \bgcross - cross pattern
-  | "diagonalCross" // \bgdcross - diagonal cross
-  | "darkHorizontal" // \bgdkhoriz - dark horizontal lines
-  | "darkVertical" // \bgdkvert - dark vertical lines
-  | "darkForwardDiagonal" // \bgdkfdiag - dark forward diagonal
-  | "darkBackwardDiagonal" // \bgdkbdiag - dark backward diagonal
-  | "darkCross" // \bgdkcross - dark cross pattern
-  | "darkDiagonalCross" // \bgdkdcross - dark diagonal cross
-
-/** Shading definition */
-export type RTFShading = {
-  ratio: number // \shadingN - Shading ratio (0.0 to 1.0)
-  pattern: RTFShadingPattern // \bgtblrsN - Shading pattern
-  foregroundColorAlias: string // \chcfpatN - Pattern foreground color
-  backgroundColorAlias: string // \chcbpatN - Pattern background color
-}
-
 // ============================================================================
 // Registries
 // ============================================================================
@@ -133,12 +108,12 @@ export type RTFShading = {
 /** Style definition */
 export type RTFStyle = {
   type: "character" | "paragraph" | "section" // \cs, \s or \ds
-  baseStyleAlias: string // Reference to base style by alias
-  nextStyleAlias: string // Reference to next style by alias
-  name: string // RTF style name shown to user (defaults to alias if not provided)
-  characterFormatting: Partial<RTFCharacterFormatting>
-  paragraphFormatting: Partial<RTFParagraphFormatting>
-  sectionFormatting: Partial<RTFSectionFormatting>
+  baseStyleAlias?: string // Reference to base style by alias
+  nextStyleAlias?: string // Reference to next style by alias
+  name?: string // RTF style name shown to user (defaults to alias if not provided)
+  characterFormatting?: Partial<RTFCharacterFormatting>
+  paragraphFormatting?: Partial<RTFParagraphFormatting>
+  sectionFormatting?: Partial<RTFSectionFormatting>
 }
 
 /** Color definition */
@@ -152,73 +127,39 @@ export type RTFColor = {
 export type RTFFont = {
   name: string // Font name (e.g., "Arial")
   family: "roman" | "swiss" | "modern" | "script" | "decor" | "tech" | "nil" // Font family
-  charset: number // Font charset code (e.g., 0=ANSI, 1=Default, 2=Symbol, etc.)
-  pitch: "fixed" | "variable" | "default" // Font pitch
-  falt: string // Font alternate name
+  charset?: number // Font charset code (e.g., 0=ANSI, 1=Default, 2=Symbol, etc.)
+  pitch?: "fixed" | "variable" | "default" // Font pitch
+  falt?: string // Font alternate name
 }
-
-/** List numbering format types */
-export type RTFListNumberFormat =
-  | "arabic" // 0 - Arabic numerals (1, 2, 3)
-  | "upperRoman" // 1 - Upper Roman (I, II, III)
-  | "lowerRoman" // 2 - Lower Roman (i, ii, iii)
-  | "upperLetter" // 3 - Upper letters (A, B, C)
-  | "lowerLetter" // 4 - Lower letters (a, b, c)
-  | "ordinal" // 5 - Ordinal numbers (1st, 2nd, 3rd)
-  | "cardinal" // 6 - Cardinal text (One, Two, Three)
-  | "ordinalText" // 7 - Ordinal text (First, Second, Third)
-  | "bullet" // 23 - Bullet point
-  | "none" // 255 - No number/bullet
 
 /** List level definition - use Partial<RTFListLevelSettings> when optional */
 export type RTFListLevel = {
   // Level numbering
-  numberFormat: RTFListNumberFormat // \levelnfcN - Number format
-  justification: "left" | "center" | "right" // \leveljcN - Number/bullet alignment (0=left, 1=center, 2=right)
-  followChar: "tab" | "space" | "nothing" // \levelfollowN - What follows number (0=tab, 1=space, 2=nothing)
-  startAt: number // \levelstartatN - Starting number for this level (default: 1)
-  restartAfterLevel: number // \levelrestartN - Restart numbering after this level (0=none, 1=level 1, etc.)
+  format: "decimal" | "bullet" | "none"
+  justification?: "left" | "center" | "right" // \leveljcN - Number/bullet alignment (0=left, 1=center, 2=right)
+  startAt?: number // \levelstartatN - Starting number for this level (default: 1)
+  restartAfterLevel?: number // \levelrestartN - Restart numbering after this level (0=none, 1=level 1, etc.)
 
   // Indentation and spacing
-  leftIndent: RTFSize // \liN - Left indent for paragraph
-  firstLineIndent: RTFSize // \fiN - First line indent (usually negative for hanging)
-  tabPosition: RTFSize // \txN - Tab position after number
-  numberPosition: RTFSize // \levelnfcN - Position of number/bullet
-  textPosition: RTFSize // \leveltext - Position of text after number/bullet
-
-  // Advanced properties
-  levelText: string // \leveltext - Custom number/bullet text (use \u8226 for bullet)
-  levelNumbers: string // \levelnumbers - Custom level number format (e.g., "1.2.3")
-  noRestart: boolean // \levelnorestart - Don't restart numbering
+  leftIndent?: RTFSize // \liN - Left indent for paragraph
+  firstLineIndent?: RTFSize // \fiN - First line indent (usually negative for hanging)
 }
 
 /** List definition in list table - use Partial<RTFListDefinition> when optional */
 export type RTFList = {
-  type: "simple" | "multi" | "hybrid" // \listsimpleN - Simple list (1) or multilevel (0),  \listhybrid - Hybrid list
-  restartEachSection: boolean // \listrestarthdnN - Restart numbering each section
-
   // List levels (up to 9 levels, 0-8)
-  levels: Partial<RTFListLevel>[] // \listlevel definitions
-}
+  levels: RTFListLevel[] // \listlevel definitions
 
-/** List override for specific instance - use Partial<RTFListOverrideDefinition> when optional */
-export type RTFListOverride = {
-  listAlias: string // \listidN - Reference to list definition
-
-  // Level overrides
-  levelOverrides: Partial<{
-    level: number // Which level to override (0-8)
-    startAt: number // \levelstartatN - Override start number
-    override: Partial<RTFListLevel> // Override properties
-  }>[]
+  // List options
+  restartEachSection?: boolean // \listrestarthdnN - Restart numbering each section
 }
 
 // ============================================================================
 // Paragraphs and Characters
 // ============================================================================
 
-/** Supported picture types - \emfblip, \pngblip, \jpegblip, \wmetafileN, \dibitmapN, \wbitmapN, \macpict */
-export type RTFPictureType = "emf" | "png" | "jpeg" | "wmetafile" | "dibitmap" | "wbitmap" | "macpict"
+/** Supported picture types - \pngblip, \jpegblip */
+export type RTFPictureType = "png" | "jpeg"
 
 /** Picture data with format and dimensions */
 export type RTFPictureData = {
@@ -232,8 +173,6 @@ export type RTFPictureData = {
 export type RTFPictureFormatting = {
   displayWidth: RTFSize // \picwgoalN - desired display width
   displayHeight: RTFSize // \pichgoalN - desired display height
-  scaleX: number // \picscalexN - horizontal scaling ratio (default 1.0)
-  scaleY: number // \picscaleyN - vertical scaling ratio (default 1.0)
   cropTop: number // \piccroptN - pixels to crop from top
   cropBottom: number // \piccropbN - pixels to crop from bottom
   cropLeft: number // \piccroplN - pixels to crop from left
@@ -278,9 +217,11 @@ export type RTFOptionalHyphenElement = { type: "optionalHyphen" }
 
 /** Page number element - \chpgn */
 export type RTFPageNumberElement = { type: "pageNumber" }
+export type RTFTotalPagesElement = { type: "totalPages" }
 
-/** Date or time element - \chdate, \chtime */
-export type RTFDateTimeElement = { type: "dateTime"; field: "date" | "time" }
+/** Date/time field element */
+export type RTFDateElement = { type: "date"; value?: Date }
+export type RTFTimeElement = { type: "time"; value?: Date }
 
 /** Character-level flags: \super \sub \scaps \caps \v \noproof */
 export type RTFCharacterFlag = "superscript" | "subscript" | "smallCaps" | "allCaps" | "hidden" | "noProof"
@@ -297,7 +238,9 @@ export type RTFCharacterContentElement =
   | RTFNonBreakingHyphenElement
   | RTFOptionalHyphenElement
   | RTFPageNumberElement
-  | RTFDateTimeElement
+  | RTFTotalPagesElement
+  | RTFDateElement
+  | RTFTimeElement
 
 /** Character-level formatting properties */
 export type RTFCharacterFormatting = {
@@ -322,26 +265,23 @@ export type RTFCharacterFormatting = {
 }
 
 /** Hyperlink definition - supports external URLs, internal bookmarks, email, and file links */
-export type RTFHyperlink = {
-  // Hyperlink types
-  type: "bookmark" | "external" | "email"
-  tooltip?: string // \o
-
-  // Target of the hyperlink
-  bookmark?: string // For internal document navigation (\l "bookmark")
-  url?: string // For http:// or https:// or file:/// links
-  email?: {
-    address: string
-    subject?: string
-    body?: string
-  }
-}
+export type RTFHyperlink =
+  | {
+      // Hyperlink types
+      type: "bookmark"
+      bookmarkAlias: string // For internal document navigation (\l "bookmark")
+    }
+  | {
+      // Hyperlink types
+      type: "external"
+      url: string // For http:// or https:// or file:/// links
+    }
 
 /** Character element with inline content and formatting */
 export type RTFCharacterElement = {
   type: "character"
   formatting: Partial<RTFCharacterFormatting>
-  bookmarkName?: string
+  bookmarkAlias?: string
   link?: RTFHyperlink
   content: RTFCharacterContentElement[]
 } // Plain text with formatting
@@ -351,7 +291,6 @@ export type RTFParagraphFlag =
   | "keepLines"
   | "keepNext"
   | "pageBreakBefore"
-  | "noLineNumber"
   | "suppressLineNumbers"
   | "contextualSpacing"
   | "suppressHyphenation"
@@ -364,7 +303,7 @@ export type RTFParagraphFormatting = {
 
   // Spacing & indentation
   lineSpacing: RTFSize // \slN
-  lineSpacingRule: "single" | "onehalf" | "double" | "multiple" | "exact" | "atleast" // \slmultN
+  lineSpacingRule: "exact" | "auto" // \slmult0, \slmult1
   firstLineIndent: RTFSize // \fiN
   leftIndent: RTFSize // \liN
   rightIndent: RTFSize // \riN
@@ -372,17 +311,20 @@ export type RTFParagraphFormatting = {
   spaceAfter: RTFSize // \saN
 
   // Style & effects
-  borders: Partial<RTFBorders> // \brdrt, \brdrl, \brdrb, \brdrr
-  shading: Partial<RTFShading> // \shadingN, \chshdngN, \chcbpatN, \chcfpatN
+  borders: Partial<RTFBorders> // table borders
+  backgroundColorAlias: string // \cbpatN - Paragraph background color
 
   // Advanced paragraph properties
   flags: RTFParagraphFlag[]
 
   // List formatting (internal use only - set automatically when list item)
-  listOverrideAlias: string // \lsN - Reference to list override by alias
+  listAlias: string // \lsN - Reference to list override by alias
   listItem: boolean // if true, this paragraph is a list item
   listLevel: number // \ilvl - List level (0-8)
   listText: string // \pntext - Actual list number/bullet text for this item
+
+  // Footnote formatting
+  footnoteMark: string | true
 }
 
 /** Paragraph element with inline text content and formatting */
@@ -406,8 +348,10 @@ export type RTFTableFormatting = {
   rightIndent: RTFSize // \trrightN - row right position
 
   // Table style
+  borders: Partial<RTFTableBorders> // row borders
+  backgroundColorAlias: string // \clcbpatN - background color
   cellSpacing: RTFSize // \trspdbN - space between cells
-  cellFormatting: Partial<RTFTableCellFormatting>
+  cellPadding: Partial<RTFRect> // default cell padding
 }
 
 /** Table column properties */
@@ -425,8 +369,8 @@ export type RTFTableRowFormatting = {
   height: RTFSize // \trrhN - row height (negative for exact height)
 
   // Row style
-  cellSpacing: RTFSize // \trspdbN - space between cells
-  cellFormatting: Partial<RTFTableCellFormatting>
+  borders: Partial<RTFTableBorders> // row borders
+  backgroundColorAlias: string // \clcbpatN - background color
 
   // Advanced row properties
   flags: RTFTableRowFlag[]
@@ -448,11 +392,9 @@ export type RTFTableCellFormatting = {
   valign: "top" | "center" | "bottom" // \clvertalt, \clvertalc, \clvertalb
 
   // Style & effects
-  borders: Partial<RTFTableBorders> // \clbrdrt, \clbrdrl, \clbrdrb, \clbrdrr, \clbrdrh, \clbrdrv - Cell borders
+  borders: Partial<RTFBorders> // \clbrdrt, \clbrdrl, \clbrdrb, \clbrdrr - Cell borders
   padding: Partial<RTFRect> // \clpadlN, \clpadtN, \clpadrN, \clpadbN - Cell padding
-  shading: Partial<RTFShading> // \clshdngN, \chshdngN, \chcbpatN, \chcfpatN - Cell shading
-  backgroundColorAlias: string // \clcbpatN - Cell background color
-  foregroundColorAlias: string // \clcfpatN - Cell foreground color
+  backgroundColorAlias: string // \clcbpatN - background color
 }
 
 /** Table row properties */

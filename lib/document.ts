@@ -2,23 +2,15 @@
  * RichTextDocument - Complete RTF document state management.
  */
 
-import {
-  RTFCharset,
-  RTFColor,
-  RTFDocumentInfo,
-  RTFFont,
-  RTFList,
-  RTFListOverride,
-  RTFPageSetup,
-  RTFSection,
-  RTFStyle,
-  RTFTypographySettings,
-  RTFViewSettings,
-} from "./types"
-import { deepCopy, deepEqual, inch, RTFRegistry } from "./utils"
+import { RTFCharset, RTFColor, RTFDocumentInfo, RTFFont, RTFList, RTFPageSetup, RTFSection, RTFStyle, RTFTypographySettings, RTFViewSettings } from "./types"
+import { deepCopy, deepEqual, inch, pt, RTFRegistry } from "./utils"
 
-/** Default color alias for automatic/black color */
+/** Default tab width */
+export const DEFAULT_TAB_WIDTH = inch(0.5)
+
+/** Default color aliases */
 export const DEFAULT_COLOR_ALIAS = "auto"
+export const SHADING_COLOR_ALIAS = "shadingbg"
 
 /** Default font alias for Times New Roman */
 export const DEFAULT_FONT_ALIAS = "default"
@@ -47,7 +39,7 @@ export type RichTextDocumentModel = {
   fontRegistry: RTFRegistry<RTFFont>
   styleRegistry: RTFRegistry<RTFStyle>
   listRegistry: RTFRegistry<RTFList>
-  listOverrideRegistry: RTFRegistry<RTFListOverride>
+  bookmarkRegistry: RTFRegistry<string>
 
   // Document sections
   sections: RTFSection[]
@@ -61,20 +53,19 @@ export type RichTextDocumentValidator = {
   validateTypography(model: RichTextDocumentModel, value: Partial<RTFTypographySettings>): void
   validateVariableEntry(model: RichTextDocumentModel, name: string, value: string): void
   validateColorEntry(model: RichTextDocumentModel, alias: string, value: RTFColor): void
-  validateFontEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFFont>): void
-  validateStyleEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFStyle>, pendingStyleAliases: string[]): void
-  validateListEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFList>): void
-  validateListOverrideEntry(model: RichTextDocumentModel, alias: string, value: Partial<RTFListOverride>): void
+  validateFontEntry(model: RichTextDocumentModel, alias: string, value: RTFFont): void
+  validateStyleEntry(model: RichTextDocumentModel, alias: string, value: RTFStyle, pendingStyleAliases: string[]): void
+  validateListEntry(model: RichTextDocumentModel, alias: string, value: RTFList): void
   validateSection(model: RichTextDocumentModel, value: Partial<RTFSection>): void
 }
 
 /** RTF document constructor options */
 export type RichTextDocumentOptions = {
-  defaultFont: Partial<RTFFont> // Default font (default: Times New Roman)
+  defaultFont: RTFFont // Default font (default: Times New Roman)
   variables: Record<string, string> // Initial document variables
   colors: Record<string, RTFColor> // Initial color registry entries
-  fonts: Record<string, Partial<RTFFont>> // Initial font registry entries
-  styles: Record<string, Partial<RTFStyle>> // Initial style registry entries
+  fonts: Record<string, RTFFont> // Initial font registry entries
+  styles: Record<string, RTFStyle> // Initial style registry entries
   validator: RichTextDocumentValidator // Optional validator
 }
 
@@ -128,22 +119,22 @@ export interface RichTextDocument<T> {
   /**
    * Add a font to the font table (fluent interface)
    */
-  fonts(items: Record<string, Partial<RTFFont>>): this
+  fonts(items: Record<string, RTFFont>): this
 
   /**
    * Add a style to the stylesheet (fluent interface)
    */
-  styles(items: Record<string, Partial<RTFStyle>>): this
+  styles(items: Record<string, RTFStyle>): this
 
   /**
    * Register a list with an alias
    */
-  lists(items: Record<string, Partial<RTFList>>): this
+  lists(items: Record<string, RTFList>): this
 
   /**
-   * Register a list override with an alias
+   * Register a bookmark name
    */
-  listOverrides(items: Record<string, Partial<RTFListOverride>>): this
+  bookmarks(names: Record<string, string>): this
 
   /**
    * Add a new section to the document
@@ -170,16 +161,15 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
       viewScale: 100, // 100% zoom
     },
     typography: {
-      widowControl: true,
       autoHyphenation: false,
-      defaultTabWidth: inch(0.5),
+      tabWidth: DEFAULT_TAB_WIDTH,
     },
     variables: {},
-    colorRegistry: new RTFRegistry<RTFColor>(deepEqual),
-    fontRegistry: new RTFRegistry<RTFFont>(deepEqual),
-    styleRegistry: new RTFRegistry<RTFStyle>(deepEqual),
-    listRegistry: new RTFRegistry<RTFList>(),
-    listOverrideRegistry: new RTFRegistry<RTFListOverride>((a, b) => a.listAlias === b.listAlias),
+    colorRegistry: new RTFRegistry<RTFColor>({ eq: deepEqual, prefix: "c" }),
+    fontRegistry: new RTFRegistry<RTFFont>({ eq: deepEqual, prefix: "f" }),
+    styleRegistry: new RTFRegistry<RTFStyle>({ eq: deepEqual, prefix: "s" }),
+    listRegistry: new RTFRegistry<RTFList>({ eq: () => false, prefix: "l", startAt: 1 }),
+    bookmarkRegistry: new RTFRegistry<string>({ eq: (a, b) => a === b, prefix: "bk" }),
     sections: [],
   }
 
@@ -199,6 +189,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     } = options
 
     this.model.colorRegistry.register({ red: 0, green: 0, blue: 0 }, DEFAULT_COLOR_ALIAS)
+    this.model.colorRegistry.register({ red: 128, green: 128, blue: 128 }, SHADING_COLOR_ALIAS)
     this.model.colorRegistry.register({ red: 80, green: 80, blue: 80 }, FOOTNOTE_COLOR_ALIAS)
     this.model.colorRegistry.register({ red: 240, green: 240, blue: 240 }, FOOTNOTE_BACKGROUND_COLOR_ALIAS)
     this.model.fontRegistry.register(defaultFont, DEFAULT_FONT_ALIAS)
@@ -208,7 +199,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
         name: "RTF",
         characterFormatting: {
           fontAlias: DEFAULT_FONT_ALIAS,
-          fontSize: 24, // 12pt
+          fontSize: pt(12),
         },
       },
       DEFAULT_PARAGRAPH_STYLE_ALIAS
@@ -248,7 +239,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     this.model.fontRegistry.copyFrom(other.model.fontRegistry)
     this.model.styleRegistry.copyFrom(other.model.styleRegistry)
     this.model.listRegistry.copyFrom(other.model.listRegistry)
-    this.model.listOverrideRegistry.copyFrom(other.model.listOverrideRegistry)
+    this.model.bookmarkRegistry.copyFrom(other.model.bookmarkRegistry)
 
     // Deep copy content using deepCopy
     this.model.sections = deepCopy(other.model.sections)
@@ -332,7 +323,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
   /**
    * Add a font to the font table (fluent interface)
    */
-  fonts(items: Record<string, Partial<RTFFont>>): this {
+  fonts(items: Record<string, RTFFont>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateFontEntry(this.model, alias, value)
       this.model.fontRegistry.register(value, alias)
@@ -343,7 +334,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
   /**
    * Add a style to the stylesheet (fluent interface)
    */
-  styles(items: Record<string, Partial<RTFStyle>>): this {
+  styles(items: Record<string, RTFStyle>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateStyleEntry(this.model, alias, value, Object.keys(items))
       this.model.styleRegistry.register(value, alias)
@@ -354,7 +345,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
   /**
    * Register a list with an alias
    */
-  lists(items: Record<string, Partial<RTFList>>): this {
+  lists(items: Record<string, RTFList>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateListEntry(this.model, alias, value)
       this.model.listRegistry.register(value, alias)
@@ -363,12 +354,11 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
   }
 
   /**
-   * Register a list override with an alias
+   * Register a bookmark name
    */
-  listOverrides(items: Record<string, Partial<RTFListOverride>>): this {
+  bookmarks(items: Record<string, string>): this {
     for (const [alias, value] of Object.entries(items)) {
-      this.validator?.validateListOverrideEntry(this.model, alias, value)
-      this.model.listOverrideRegistry.register(value, alias)
+      this.model.bookmarkRegistry.register(value, alias)
     }
     return this
   }

@@ -128,11 +128,11 @@ This is the conclusion section.\par
 
 Standard colors for hyperlinks should be defined in the color table and applied to hyperlink display text:
 
-| Color Type | Typical RGB | Usage |
-| ---------- | ----------- | ----- |
-| Unvisited hyperlink | `\red0\green0\blue255` (Blue) | Default link color |
-| Visited hyperlink | `\red128\green0\blue128` (Purple) | Previously clicked links |
-| Active hyperlink | `\red255\green0\blue0` (Red) | Currently clicking |
+| Color Type          | Typical RGB                       | Usage                    |
+| ------------------- | --------------------------------- | ------------------------ |
+| Unvisited hyperlink | `\red0\green0\blue255` (Blue)     | Default link color       |
+| Visited hyperlink   | `\red128\green0\blue128` (Purple) | Previously clicked links |
+| Active hyperlink    | `\red255\green0\blue0` (Red)      | Currently clicking       |
 
 #### Hyperlink Color Application
 
@@ -141,88 +141,6 @@ Standard colors for hyperlinks should be defined in the color table and applied 
 {\field{\*\fldinst HYPERLINK "https://example.com"}
 {\fldrslt{\ul\cf2 Link Text}}}
 ```
-
-### Email Hyperlinks
-
-Email hyperlinks use the `mailto:` protocol to open the default email client with pre-filled information. RTF supports the full mailto URL scheme including subject, body, and multiple recipients.
-
-#### Basic Email Link
-
-```rtf
-{\field{\*\fldinst HYPERLINK "mailto:user@example.com"}
-{\fldrslt{\ul\cf1 Contact Us}}}
-```
-
-#### Email with Subject
-
-```rtf
-{\field{\*\fldinst HYPERLINK "mailto:support@example.com?subject=Help%20Request"}
-{\fldrslt{\ul\cf1 Get Support}}}
-```
-
-#### Email with Subject and Body
-
-```rtf
-{\field{\*\fldinst HYPERLINK "mailto:info@example.com?subject=Question&body=Hello%2C%0A%0AI%20have%20a%20question%20about%20your%20product."}
-{\fldrslt{\ul\cf1 Send Inquiry}}}
-```
-
-#### Multiple Recipients with CC and BCC
-
-```rtf
-{\field{\*\fldinst HYPERLINK "mailto:sales@example.com?cc=manager@example.com&bcc=archive@example.com&subject=Order"}
-{\fldrslt{\ul\cf1 Place Order}}}
-```
-
-#### Complete Email Parameters
-
-| Parameter | Description                  | Example                       |
-| --------- | ---------------------------- | ----------------------------- |
-| `mailto:` | Primary recipient(s)         | `mailto:user@example.com`     |
-| `cc`      | Carbon copy recipients       | `cc=manager@example.com`      |
-| `bcc`     | Blind carbon copy recipients | `bcc=archive@example.com`     |
-| `subject` | Email subject line           | `subject=Meeting%20Request`   |
-| `body`    | Pre-filled email body        | `body=Dear%20Sir%2C%0A%0A...` |
-
-#### URL Encoding Requirements
-
-Special characters in email parameters must be URL-encoded:
-
-| Character | Encoded | Usage                                    |
-| --------- | ------- | ---------------------------------------- |
-| Space     | `%20`   | Between words                            |
-| Newline   | `%0A`   | Line breaks (use `%0A%0A` for paragraph) |
-| Comma     | `%2C`   | In body text                             |
-| `&`       | `%26`   | In body text (not parameter separator)   |
-| `?`       | `%3F`   | In body text                             |
-| `=`       | `%3D`   | In body text                             |
-| `@`       | `%40`   | In body text (not in email address)      |
-
-#### Complex Email Example
-
-```rtf
-{\field{\*\fldinst HYPERLINK "mailto:support@example.com?cc=team@example.com&subject=Bug%20Report%3A%20RTF%20Generator&body=Description%3A%0A%0ASteps%20to%20reproduce%3A%0A1.%20Open%20document%0A2.%20Click%20link%0A3.%20Error%20appears%0A%0AExpected%3A%20Link%20works%0AActual%3A%20Error%20message"}
-{\fldrslt{\ul\cf1 Report Bug}}}
-```
-
-This creates an email with:
-
-- **To:** support@example.com
-- **CC:** team@example.com
-- **Subject:** Bug Report: RTF Generator
-- **Body:**
-
-  ```
-  Description:
-
-  Steps to reproduce:
-  1. Open document
-  2. Click link
-  3. Error appears
-
-  Expected: Link works
-  Actual: Error message
-  ```
 
 #### Implementation Notes
 
@@ -513,5 +431,5 @@ This text has a comment.{\*\atnid1}{\*\atndate 1704067200}
 
 1. **Link verification**: Test all hyperlinks and cross-references
 2. **Bookmark accuracy**: Verify bookmarks navigate correctly
-4. **Footnote formatting**: Ensure footnotes display and number properly
-5. **Field updates**: Test field recalculation in target applications
+3. **Footnote formatting**: Ensure footnotes display and number properly
+4. **Field updates**: Test field recalculation in target applications

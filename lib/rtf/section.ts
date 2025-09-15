@@ -1,6 +1,6 @@
 import { RichTextDocumentModel } from "../document"
 import { RTFSection, RTFSectionFormatting } from "../types"
-import { toTwips } from "../utils"
+import { toTwip } from "../utils"
 
 import { generateElements, SectionGeometry } from "./base"
 
@@ -22,10 +22,10 @@ export function generateSectionFormatting(model: RichTextDocumentModel, formatti
   }
 
   // Paper dimensions
-  const pageWidth: number = toTwips(
+  const pageWidth: number = toTwip(
     formatting.pageWidth ?? (formatting.landscape !== model.pageSetup.landscape ? model.pageSetup.paperHeight : model.pageSetup.paperWidth)
   )
-  const pageHeight: number = toTwips(
+  const pageHeight: number = toTwip(
     formatting.pageHeight ?? (formatting.landscape !== model.pageSetup.landscape ? model.pageSetup.paperWidth : model.pageSetup.paperHeight)
   )
 
@@ -33,10 +33,10 @@ export function generateSectionFormatting(model: RichTextDocumentModel, formatti
   parts.push(`\\pghsxn${pageHeight}`)
 
   // Margins
-  const marginLeft: number = toTwips(formatting.margin?.left ?? model.pageSetup.margin?.left)
-  const marginRight: number = toTwips(formatting.margin?.right ?? model.pageSetup.margin?.right)
-  const marginTop: number = toTwips(formatting.margin?.top ?? model.pageSetup.margin?.top)
-  const marginBottom: number = toTwips(formatting.margin?.bottom ?? model.pageSetup.margin?.bottom)
+  const marginLeft: number = toTwip(formatting.margin?.left ?? model.pageSetup.margin?.left)
+  const marginRight: number = toTwip(formatting.margin?.right ?? model.pageSetup.margin?.right)
+  const marginTop: number = toTwip(formatting.margin?.top ?? model.pageSetup.margin?.top)
+  const marginBottom: number = toTwip(formatting.margin?.bottom ?? model.pageSetup.margin?.bottom)
 
   parts.push(`\\marglsxn${marginLeft}`)
   parts.push(`\\margrsxn${marginRight}`)
@@ -44,16 +44,16 @@ export function generateSectionFormatting(model: RichTextDocumentModel, formatti
   parts.push(`\\margbsxn${marginBottom}`)
 
   // Gutter
-  const gutter: number = toTwips(formatting.gutter ?? model.pageSetup.gutter)
+  const gutter: number = toTwip(formatting.gutter ?? model.pageSetup.gutter)
 
   parts.push(`\\guttersxn${gutter}`)
 
   // Page options
-  if (formatting.landscape) parts.push("\\lndscpsxn")
+  if (formatting.landscape !== undefined ? formatting.landscape : model.pageSetup.landscape) parts.push("\\lndscpsxn")
 
   // Header and footer distances
-  if (formatting.headerDistance !== undefined) parts.push(`\\headery${toTwips(formatting.headerDistance)}`)
-  if (formatting.footerDistance !== undefined) parts.push(`\\footery${toTwips(formatting.footerDistance)}`)
+  if (formatting.headerDistance !== undefined) parts.push(`\\headery${toTwip(formatting.headerDistance)}`)
+  if (formatting.footerDistance !== undefined) parts.push(`\\footery${toTwip(formatting.footerDistance)}`)
 
   // Vertical text alignment
   if (formatting.valign !== undefined) {
@@ -71,7 +71,7 @@ export function generateSectionFormatting(model: RichTextDocumentModel, formatti
   if (formatting.columnCount !== undefined) {
     parts.push(`\\cols${formatting.columnCount}`)
     if (formatting.columnSpacing !== undefined) {
-      parts.push(`\\colsx${toTwips(formatting.columnSpacing)}`)
+      parts.push(`\\colsx${toTwip(formatting.columnSpacing)}`)
     }
     if (formatting.lineBetweenColumns) {
       parts.push("\\linebetcol")

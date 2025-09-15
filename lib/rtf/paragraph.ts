@@ -1,8 +1,8 @@
-import { RichTextDocumentModel, DEFAULT_PARAGRAPH_STYLE_ALIAS } from "../document"
+import { RichTextDocumentModel, DEFAULT_PARAGRAPH_STYLE_ALIAS, DEFAULT_TAB_WIDTH } from "../document"
 import { RTFCharacterFormatting, RTFParagraphElement, RTFParagraphFlag, RTFParagraphFormatting } from "../types"
-import { pt, toTwips } from "../utils"
+import { toTwip } from "../utils"
 
-import { generateBorderStyle, generateShadingPattern, SectionGeometry } from "./base"
+import { generateBorderStyle, SectionGeometry } from "./base"
 import { generateCharacter, generateCharacterFormatting } from "./character"
 
 /** Generate paragraph formatting control words */
@@ -23,29 +23,33 @@ export function generateParagraphFormatting(model: RichTextDocumentModel, format
   }
 
   // Indentation and spacing
-  let leftIndent = formatting.leftIndent !== undefined ? toTwips(formatting.leftIndent) : undefined
+  let firstLineIndent = formatting.firstLineIndent !== undefined ? toTwip(formatting.firstLineIndent) : undefined
+  let leftIndent = formatting.leftIndent !== undefined ? toTwip(formatting.leftIndent) : undefined
 
-  if (formatting.listOverrideAlias) {
-    const listOverride = model.listOverrideRegistry.get(formatting.listOverrideAlias)
+  if (formatting.listAlias !== undefined) {
+    const list = model.listRegistry.get(formatting.listAlias)
     const listLevel = formatting.listLevel || 0
+    const levels = list.item.levels || []
+    const level = listLevel < levels.length ? levels[listLevel] : undefined
+    const tabWidth = toTwip(model.typography.tabWidth || DEFAULT_TAB_WIDTH)
 
+    leftIndent = (leftIndent || 0) + toTwip(level?.leftIndent, tabWidth * (1 + listLevel / 2))
     if (formatting.listItem) {
-      parts.push(`\\ls${listOverride.index}`)
+      firstLineIndent = (firstLineIndent || 0) - toTwip(tabWidth / 2)
+      parts.push("{\\listtext ?\\tab}")
+      parts.push(`\\ls${list.index}`)
       parts.push(`\\ilvl${listLevel}`)
     } else {
-      const list = model.listRegistry.get(listOverride.item.listAlias || "")
-      const levels = list.item.levels || []
-      const level = listLevel < levels.length ? levels[listLevel] : undefined
-
-      leftIndent = toTwips(formatting.leftIndent) + toTwips(level?.leftIndent ?? pt(36 * (listLevel + 1)))
+      firstLineIndent = undefined
     }
   }
-  if (formatting.firstLineIndent !== undefined) parts.push(`\\fi${toTwips(formatting.firstLineIndent)}`)
+  if (firstLineIndent !== undefined) parts.push(`\\fi${toTwip(firstLineIndent)}`)
   if (leftIndent !== undefined) parts.push(`\\li${leftIndent}`)
-  if (formatting.rightIndent !== undefined) parts.push(`\\ri${toTwips(formatting.rightIndent)}`)
-  if (formatting.spaceBefore !== undefined) parts.push(`\\sb${toTwips(formatting.spaceBefore)}`)
-  if (formatting.spaceAfter !== undefined) parts.push(`\\sa${toTwips(formatting.spaceAfter)}`)
-  if (formatting.lineSpacing !== undefined) parts.push(`\\sl${toTwips(formatting.lineSpacing)}`)
+  if (formatting.rightIndent !== undefined) parts.push(`\\ri${toTwip(formatting.rightIndent)}`)
+  if (formatting.spaceBefore !== undefined) parts.push(`\\sb${toTwip(formatting.spaceBefore)}`)
+  if (formatting.spaceAfter !== undefined) parts.push(`\\sa${toTwip(formatting.spaceAfter)}`)
+  if (formatting.lineSpacing !== undefined) parts.push(`\\sl${toTwip(formatting.lineSpacing)}`)
+  if (formatting.lineSpacingRule === "exact") parts.push("\\slmult0")
 
   // Paragraph borders
   if (formatting.borders !== undefined) {
@@ -64,19 +68,8 @@ export function generateParagraphFormatting(model: RichTextDocumentModel, format
   }
 
   // Paragraph shading
-  if (formatting.shading !== undefined) {
-    if (formatting.shading.ratio !== undefined) {
-      parts.push(`\\shading${Math.max(0, Math.min(10000, Math.round(formatting.shading.ratio * 10000)))}`)
-    }
-    if (formatting.shading.pattern !== undefined) {
-      parts.push(generateShadingPattern(formatting.shading.pattern))
-    }
-    if (formatting.shading.foregroundColorAlias !== undefined) {
-      parts.push(`\\cfpat${model.colorRegistry.index(formatting.shading.foregroundColorAlias)}`)
-    }
-    if (formatting.shading.backgroundColorAlias !== undefined) {
-      parts.push(`\\cbpat${model.colorRegistry.index(formatting.shading.backgroundColorAlias)}`)
-    }
+  if (formatting.backgroundColorAlias !== undefined) {
+    parts.push(`\\cbpat${model.colorRegistry.index(formatting.backgroundColorAlias)}`)
   }
 
   // Paragraph flags
@@ -84,8 +77,7 @@ export function generateParagraphFormatting(model: RichTextDocumentModel, format
     keepLines: "\\keep",
     keepNext: "\\keepn",
     pageBreakBefore: "\\pagebb",
-    noLineNumber: "\\noline",
-    suppressLineNumbers: "\\nosupnum",
+    suppressLineNumbers: "\\noline",
     contextualSpacing: "\\contextual",
     suppressHyphenation: "\\hyphnone",
     noWidowControl: "\\nowidctl",
@@ -99,17 +91,15 @@ export function generateParagraphFormatting(model: RichTextDocumentModel, format
 /** Generate a paragraph element */
 export function generateParagraph(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFParagraphElement): string {
   const parts: string[] = []
+  let style = model.styleRegistry.get(element.formatting.styleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS)
+  let formatting = { ...(style.item.paragraphFormatting || {}), ...element.formatting, styleAlias: undefined }
+  let characterFormatting: Partial<RTFCharacterFormatting> = { ...(style.item.characterFormatting || {}), styleAlias: undefined }
   let needSpace: boolean = true
-  let formatting = element.formatting
-  let characterFormatting: Partial<RTFCharacterFormatting> = {}
-  let style = model.styleRegistry.get(formatting.styleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS)
 
-  formatting = { ...(style.item.paragraphFormatting || {}), ...formatting }
-  characterFormatting = { ...(style.item.characterFormatting || {}), ...characterFormatting }
   while (style.item.baseStyleAlias !== undefined && style.item.baseStyleAlias !== style.name) {
     style = model.styleRegistry.get(style.item.baseStyleAlias)
-    formatting = { ...(style.item.paragraphFormatting || {}), ...formatting }
-    characterFormatting = { ...(style.item.characterFormatting || {}), ...characterFormatting }
+    formatting = { ...(style.item.paragraphFormatting || {}), ...formatting, styleAlias: undefined }
+    characterFormatting = { ...(style.item.characterFormatting || {}), ...characterFormatting, styleAlias: undefined }
   }
 
   // Paragraph preamble
@@ -117,8 +107,8 @@ export function generateParagraph(model: RichTextDocumentModel, geometry: Sectio
   const paragraphFormattingData = generateParagraphFormatting(model, formatting)
 
   parts.push("\\pard\\plain")
-  if (formatting.styleAlias !== undefined) {
-    parts.push(`\\s${model.styleRegistry.index(formatting.styleAlias)}`)
+  if (element.formatting.styleAlias !== undefined) {
+    parts.push(`\\s${model.styleRegistry.index(element.formatting.styleAlias)}`)
     needSpace = true
   }
   if (characterFormattingData.length > 0) {

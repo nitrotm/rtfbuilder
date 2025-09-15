@@ -1,6 +1,6 @@
 import { RichTextDocumentModel, FOOTNOTE_BACKGROUND_COLOR_ALIAS, FOOTNOTE_COLOR_ALIAS } from "../document"
 import { RTFCharacterElement, RTFCharacterFlag, RTFCharacterFormatting, RTFFootnoteElement, RTFPictureElement, RTFPictureType } from "../types"
-import { toHalfPoints, toTwips } from "../utils"
+import { toHalfPoint, toTwip } from "../utils"
 
 import { escapeRTFText, generateElement, SectionGeometry } from "./base"
 
@@ -10,13 +10,13 @@ export function generateCharacterFormatting(model: RichTextDocumentModel, format
 
   // Character style
   if (formatting.fontAlias !== undefined) parts.push(`\\f${model.fontRegistry.index(formatting.fontAlias)}`)
-  if (formatting.fontSize !== undefined) parts.push(`\\fs${toHalfPoints(formatting.fontSize)}`)
+  if (formatting.fontSize !== undefined) parts.push(`\\fs${toHalfPoint(formatting.fontSize)}`)
   if (formatting.language !== undefined) parts.push(`\\lang${formatting.language}`)
-  if (formatting.kerning !== undefined) parts.push(`\\kerning${toHalfPoints(formatting.kerning)}`)
-  if (formatting.characterSpacing !== undefined) parts.push(`\\expndtw${toTwips(formatting.characterSpacing)}`)
-  if (formatting.horizontalScaling !== undefined) parts.push(`\\charscalex${formatting.horizontalScaling}`)
+  if (formatting.kerning !== undefined) parts.push(`\\kerning${toHalfPoint(formatting.kerning)}`)
+  if (formatting.characterSpacing !== undefined) parts.push(`\\expndtw${toTwip(formatting.characterSpacing)}`)
+  if (formatting.horizontalScaling !== undefined) parts.push(`\\charscalex${Math.round(formatting.horizontalScaling * 100)}`)
   if (formatting.colorAlias !== undefined) parts.push(`\\cf${model.colorRegistry.index(formatting.colorAlias)}`)
-  if (formatting.highlightColorAlias !== undefined) parts.push(`\\cb${model.colorRegistry.index(formatting.highlightColorAlias)}`)
+  if (formatting.highlightColorAlias !== undefined) parts.push(`\\highlight${model.colorRegistry.index(formatting.highlightColorAlias)}`)
   if (formatting.bold) parts.push("\\b")
   if (formatting.italic) parts.push("\\i")
   if (formatting.underline !== undefined) {
@@ -58,34 +58,30 @@ export function generateCharacterFormatting(model: RichTextDocumentModel, format
 /** Generate a character element */
 export function generateCharacter(model: RichTextDocumentModel, geometry: SectionGeometry, element: RTFCharacterElement): string {
   const parts: string[] = []
+  let style = element.formatting.styleAlias !== undefined ? model.styleRegistry.get(element.formatting.styleAlias) : undefined
+  let formatting = { ...(style?.item?.characterFormatting || {}), ...element.formatting, styleAlias: undefined }
   let needSpace: boolean = false
-  let formatting = element.formatting
 
-  if (formatting.styleAlias !== undefined) {
-    let style = model.styleRegistry.get(formatting.styleAlias)
-
-    formatting = { ...(style.item.characterFormatting || {}), ...formatting }
-    while (style.item.baseStyleAlias !== undefined && style.item.baseStyleAlias !== style.name) {
-      style = model.styleRegistry.get(style.item.baseStyleAlias)
-      formatting = { ...(style.item.characterFormatting || {}), ...formatting }
-    }
+  while (style?.item?.baseStyleAlias !== undefined && style.item.baseStyleAlias !== style.name) {
+    style = model.styleRegistry.get(style.item.baseStyleAlias)
+    formatting = { ...(style.item.characterFormatting || {}), ...formatting, styleAlias: undefined }
+  }
+  if (element.formatting.styleAlias !== undefined) {
+    parts.push(`\\cs${model.styleRegistry.index(element.formatting.styleAlias)}`)
+    needSpace = true
   }
 
   // Content preamble
   const formattingData = generateCharacterFormatting(model, formatting)
 
-  if (formatting.styleAlias !== undefined) {
-    parts.push(`\\cs${model.styleRegistry.index(formatting.styleAlias)}`)
-    needSpace = true
-  }
   if (formattingData.length > 0) {
     parts.push(formattingData)
     needSpace = true
   }
 
   // Bookmark start
-  if (element.bookmarkName !== undefined) {
-    parts.push(`{\\*\\bkmkstart ${element.bookmarkName}}`)
+  if (element.bookmarkAlias !== undefined) {
+    parts.push(`{\\*\\bkmkstart bk${model.bookmarkRegistry.index(element.bookmarkAlias)}}`)
     needSpace = false
   }
 
@@ -93,24 +89,10 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
   if (element.link?.type !== undefined) {
     switch (element.link.type) {
       case "bookmark":
-        parts.push(`{\\field{\\*\\fldinst HYPERLINK "." \\l "#${element.link.bookmark}"}{\\fldrslt{`)
+        parts.push(`{\\field{\\*\\fldinst HYPERLINK "." \\l "#bk${model.bookmarkRegistry.index(element.link.bookmarkAlias)}"}{\\fldrslt{`)
         break
       case "external":
         parts.push(`{\\field{\\*\\fldinst HYPERLINK "${element.link.url}"}{\\fldrslt{`)
-        break
-      case "email":
-        let mailto = `mailto:${element.link.email?.address}`
-        if (element.link.email?.subject || element.link.email?.body) {
-          const params: string[] = []
-          if (element.link.email.subject) {
-            params.push(`subject=${encodeURIComponent(element.link.email.subject)}`)
-          }
-          if (element.link.email.body) {
-            params.push(`body=${encodeURIComponent(element.link.email.body)}`)
-          }
-          mailto += `?${params.join("&")}`
-        }
-        parts.push(`{\\field{\\*\\fldinst HYPERLINK "${mailto}"}{\\fldrslt{`)
         break
       default:
         throw new Error(`Unknown hyperlink type: ${(element.link as any).type}`)
@@ -163,12 +145,20 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
         needSpace = true
         break
       case "pageNumber":
-        chunk = "\\chpgn"
-        needSpace = true
+        chunk = "{\\field{\\*\\fldinst PAGE}{\\fldrslt 1}}"
+        needSpace = false
         break
-      case "dateTime":
-        chunk = item.field === "date" ? "\\chdate " : "\\chtime "
-        needSpace = true
+      case "totalPages":
+        chunk = "{\\field{\\*\\fldinst NUMPAGES}{\\fldrslt 1}}"
+        needSpace = false
+        break
+      case "date":
+        chunk = `{\\field{\\*\\fldinst DATE \\\\@"dd.MM.yyyy" }{\\fldrslt ${(item.value || new Date()).toDateString()}}}`
+        needSpace = false
+        break
+      case "time":
+        chunk = `{\\field{\\*\\fldinst TIME \\\\@"HH:mm:ss" }{\\fldrslt ${(item.value || new Date()).toDateString()}}}`
+        needSpace = false
         break
       default:
         throw new Error(`Unknown character content type: ${(item as any).type}`)
@@ -183,8 +173,8 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
   }
 
   // Bookmark end
-  if (element.bookmarkName !== undefined) {
-    parts.push(`{\\*\\bkmkend ${element.bookmarkName}}`)
+  if (element.bookmarkAlias !== undefined) {
+    parts.push(`{\\*\\bkmkend bk${model.bookmarkRegistry.index(element.bookmarkAlias)}}`)
     needSpace = false
   }
 
@@ -259,13 +249,8 @@ export function generatePicture(_model: RichTextDocumentModel, _geometry: Sectio
 
   // Picture preamble
   const formatMap: Record<RTFPictureType, string> = {
-    emf: "\\emfblip",
     png: "\\pngblip",
     jpeg: "\\jpegblip",
-    wmetafile: "\\wmetafile8",
-    dibitmap: "\\dibitmap0",
-    wbitmap: "\\wbitmap0",
-    macpict: "\\macpict",
   }
 
   parts.push(formatMap[picture.format] || "\\pngblip")
@@ -275,12 +260,12 @@ export function generatePicture(_model: RichTextDocumentModel, _geometry: Sectio
   parts.push(`\\pich${picture.height}`)
 
   // Display dimensions (in twips)
-  if (formatting.displayWidth !== undefined) parts.push(`\\picwgoal${toTwips(formatting.displayWidth)}`)
-  if (formatting.displayHeight !== undefined) parts.push(`\\pichgoal${toTwips(formatting.displayHeight)}`)
+  if (formatting.displayWidth !== undefined) parts.push(`\\picwgoal${toTwip(formatting.displayWidth)}`)
+  if (formatting.displayHeight !== undefined) parts.push(`\\pichgoal${toTwip(formatting.displayHeight)}`)
 
   // Scale percentages
-  if (formatting.scaleX !== undefined) parts.push(`\\picscalex${Math.round(formatting.scaleX * 100)}`)
-  if (formatting.scaleY !== undefined) parts.push(`\\picscaley${Math.round(formatting.scaleY * 100)}`)
+  // if (formatting.scaleX !== undefined) parts.push(`\\picscalex${Math.round(formatting.scaleX * 100)}`)
+  // if (formatting.scaleY !== undefined) parts.push(`\\picscaley${Math.round(formatting.scaleY * 100)}`)
 
   // Crop values (in twips)
   if (formatting.cropTop !== undefined) parts.push(`\\piccropt${formatting.cropTop}`)

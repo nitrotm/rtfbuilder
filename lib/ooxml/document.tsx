@@ -1,24 +1,36 @@
-import { RichTextDocumentModel } from "../document"
+import { DEFAULT_FONT_ALIAS, DEFAULT_PARAGRAPH_STYLE_ALIAS, DEFAULT_TAB_WIDTH } from "../document"
 
 import { OOXMLGenerationOptions } from "."
-import { convertColorToHex, XML_HEADER } from "./base"
+import {
+  convertColorToHex,
+  CORE_PROPERTIES_NS,
+  DC_ELEMENTS_NS,
+  DC_TERMS_NS,
+  DCMI_TYPE_NS,
+  OOXMLDocumentModel,
+  RELATIONSHIPS_OFFICE_DOCUMENT_NS,
+  SectionGeometry,
+  WORDPROCESSINGML_MAIN_NS,
+  XML_STANDALONE_HEADER,
+} from "./base"
 import { generateSection } from "./section"
-import { RTFParagraphFormatting, RTFViewSettings } from "../types"
-import { toHalfPoints, toTwips } from "../utils"
+import { RTFListLevel, RTFPageSetup, RTFParagraphFormatting, RTFViewSettings } from "../types"
+import { pt, toHalfPoint, toTwip } from "../utils"
+import { generateParagraph } from "./paragraph"
 
 /** Generate core properties */
-export function generateCoreProps(_model: RichTextDocumentModel, options: Partial<OOXMLGenerationOptions>): string {
+export function generateCoreProps(_model: OOXMLDocumentModel, options: Partial<OOXMLGenerationOptions>): string {
   const now = new Date().toISOString()
 
   return (
-    XML_HEADER +
+    XML_STANDALONE_HEADER +
     (
       <cp:coreProperties
-        xmlns="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
-        xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
-        xmlns:dc="http://purl.org/dc/elements/1.1/"
-        xmlns:dcterms="http://purl.org/dc/terms/"
-        xmlns:dcmitype="http://purl.org/dc/dcmitype/"
+        xmlns={CORE_PROPERTIES_NS}
+        xmlns:cp={CORE_PROPERTIES_NS}
+        xmlns:dc={DC_ELEMENTS_NS}
+        xmlns:dcterms={DC_TERMS_NS}
+        xmlns:dcmitype={DCMI_TYPE_NS}
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       >
         <dc:creator>{options.creator}</dc:creator>
@@ -35,7 +47,7 @@ export function generateCoreProps(_model: RichTextDocumentModel, options: Partia
 }
 
 /** Generate main document */
-export function generateDocument(model: RichTextDocumentModel): string {
+export function generateDocument(model: OOXMLDocumentModel): string {
   const bodyContent: JSX.IntrinsicElements[] = []
 
   // Generate all sections
@@ -51,7 +63,7 @@ export function generateDocument(model: RichTextDocumentModel): string {
     }
 
     // Generate the section content
-    bodyContent.push(...generateSection(model, section))
+    bodyContent.push(...generateSection(model, section, index))
   }
 
   // If no sections, add a default empty paragraph
@@ -60,9 +72,9 @@ export function generateDocument(model: RichTextDocumentModel): string {
   }
 
   return (
-    XML_HEADER +
+    XML_STANDALONE_HEADER +
     (
-      <w:document xmlns:w="http://purl.oclc.org/ooxml/wordprocessingml/main" xmlns:r="http://purl.oclc.org/ooxml/officeDocument/relationships">
+      <w:document xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
         <w:body>{bodyContent}</w:body>
       </w:document>
     )
@@ -70,17 +82,38 @@ export function generateDocument(model: RichTextDocumentModel): string {
 }
 
 /** Generate styles */
-export function generateStyles(model: RichTextDocumentModel): string {
+export function generateStyles(model: OOXMLDocumentModel): string {
   const styles: JSX.IntrinsicElements[] = []
+  const defaultFont = model.fontRegistry.get(DEFAULT_FONT_ALIAS)
+  const defaultFontName = defaultFont?.item?.name || "Times New Roman"
+
+  styles.push(
+    <w:docDefaults>
+      <w:rPrDefault>
+        <w:rPr>
+          <w:rFonts w:ascii={defaultFontName} w:hAnsi={defaultFontName} />
+          <w:kern w:val={2} />
+          <w:sz w:val={toHalfPoint(pt(12))} />
+          <w:szCs w:val={toHalfPoint(pt(12))} />
+          <w:lang w:val="en-US" />
+        </w:rPr>
+      </w:rPrDefault>
+      <w:pPrDefault>
+        <w:pPr>
+          <w:suppressAutoHyphens />
+        </w:pPr>
+      </w:pPrDefault>
+    </w:docDefaults>
+  )
 
   for (const styleEntry of model.styleRegistry.entries()) {
     const style = styleEntry.item
-    const styleId = styleEntry.name
-
     const styleChildren: JSX.IntrinsicElements[] = []
 
     // Add style name
-    styleChildren.push(<w:name w:val={style.name || styleId} />)
+    styleChildren.push(<w:name w:val={style.name || styleEntry.name} />)
+    styleChildren.push(<w:basedOn w:val={style.baseStyleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS} />)
+    styleChildren.push(<w:next w:val={style.nextStyleAlias || styleEntry.name} />)
 
     // Add qFormat for quick styles (assuming all styles are quick styles for now)
     styleChildren.push(<w:qFormat />)
@@ -90,16 +123,16 @@ export function generateStyles(model: RichTextDocumentModel): string {
       const pPrChildren: JSX.IntrinsicElements[] = []
 
       // Spacing
-      const spacingAttrs: Partial<JSX.IntrinsicElements["w:spacing"]> = {}
+      const spacingAttrs: Partial<Exclude<JSX.IntrinsicElements["w:spacing"], { "w:val"?: number }>> = {}
 
       if (style.paragraphFormatting.spaceBefore !== undefined) {
-        spacingAttrs["w:before"] = toTwips(style.paragraphFormatting.spaceBefore)
+        spacingAttrs["w:before"] = toTwip(style.paragraphFormatting.spaceBefore)
       }
       if (style.paragraphFormatting.spaceAfter !== undefined) {
-        spacingAttrs["w:after"] = toTwips(style.paragraphFormatting.spaceAfter)
+        spacingAttrs["w:after"] = toTwip(style.paragraphFormatting.spaceAfter)
       }
       if (style.paragraphFormatting.lineSpacing !== undefined) {
-        spacingAttrs["w:line"] = toTwips(style.paragraphFormatting.lineSpacing)
+        spacingAttrs["w:line"] = toTwip(style.paragraphFormatting.lineSpacing)
         spacingAttrs["w:lineRule"] = style.paragraphFormatting.lineSpacingRule || "auto"
       }
       if (Object.keys(spacingAttrs).length > 0) {
@@ -110,8 +143,8 @@ export function generateStyles(model: RichTextDocumentModel): string {
       const indAttrs: Partial<JSX.IntrinsicElements["w:ind"]> = {}
 
       if (style.paragraphFormatting.leftIndent !== undefined || style.paragraphFormatting.firstLineIndent !== undefined) {
-        let leftIndent = toTwips(style.paragraphFormatting.leftIndent)
-        let firstLineIndent = toTwips(style.paragraphFormatting.firstLineIndent)
+        let leftIndent = toTwip(style.paragraphFormatting.leftIndent)
+        let firstLineIndent = toTwip(style.paragraphFormatting.firstLineIndent)
 
         indAttrs["w:start"] = leftIndent
         if (firstLineIndent < 0) {
@@ -121,7 +154,7 @@ export function generateStyles(model: RichTextDocumentModel): string {
         }
       }
       if (style.paragraphFormatting.rightIndent !== undefined) {
-        indAttrs["w:end"] = toTwips(style.paragraphFormatting.rightIndent)
+        indAttrs["w:end"] = toTwip(style.paragraphFormatting.rightIndent)
       }
       if (Object.keys(indAttrs).length > 0) {
         pPrChildren.push(<w:ind {...indAttrs} />)
@@ -160,8 +193,8 @@ export function generateStyles(model: RichTextDocumentModel): string {
 
       // Font size
       if (style.characterFormatting.fontSize !== undefined) {
-        rPrChildren.push(<w:sz w:val={toHalfPoints(style.characterFormatting.fontSize)} />)
-        rPrChildren.push(<w:szCs w:val={toHalfPoints(style.characterFormatting.fontSize)} />)
+        rPrChildren.push(<w:sz w:val={toHalfPoint(style.characterFormatting.fontSize)} />)
+        rPrChildren.push(<w:szCs w:val={toHalfPoint(style.characterFormatting.fontSize)} />)
       }
 
       // Bold
@@ -195,17 +228,17 @@ export function generateStyles(model: RichTextDocumentModel): string {
     }
 
     styles.push(
-      <w:style w:type={style.type} w:styleId={styleId}>
+      <w:style w:type={style.type || "paragraph"} w:styleId={styleEntry.name}>
         {styleChildren}
       </w:style>
     )
   }
 
-  return XML_HEADER + <w:styles xmlns:w="http://purl.oclc.org/ooxml/wordprocessingml/main">{styles}</w:styles>
+  return XML_STANDALONE_HEADER + <w:styles xmlns:w={WORDPROCESSINGML_MAIN_NS}>{styles}</w:styles>
 }
 
 /** Generate font table */
-export function generateFontTable(model: RichTextDocumentModel): string {
+export function generateFontTable(model: OOXMLDocumentModel): string {
   const fonts: JSX.IntrinsicElements[] = []
 
   // Iterate through all registered fonts
@@ -243,18 +276,11 @@ export function generateFontTable(model: RichTextDocumentModel): string {
     fonts.push(<w:font {...fontProps}>{fontChildren}</w:font>)
   }
 
-  return (
-    XML_HEADER +
-    (
-      <w:fonts xmlns:w="http://purl.oclc.org/ooxml/wordprocessingml/main" xmlns:r="http://purl.oclc.org/ooxml/officeDocument/relationships">
-        {fonts}
-      </w:fonts>
-    )
-  )
+  return XML_STANDALONE_HEADER + <w:fonts xmlns:w={WORDPROCESSINGML_MAIN_NS}>{fonts}</w:fonts>
 }
 
 /** Generate settings */
-export function generateSettings(model: RichTextDocumentModel): string {
+export function generateSettings(model: OOXMLDocumentModel): string {
   const settings: JSX.IntrinsicElements[] = []
 
   const viewKindMap: Record<RTFViewSettings["viewKind"], string> = {
@@ -276,9 +302,11 @@ export function generateSettings(model: RichTextDocumentModel): string {
   }
 
   settings.push(<w:zoom w:val={zoomKindMap[model.viewSettings.viewZoomKind || "none"]} w:percent={`${model.viewSettings.viewScale || 100}%`} />)
-  if (model.typography.defaultTabWidth !== undefined) {
-    settings.push(<w:defaultTabStop w:val={toTwips(model.typography.defaultTabWidth)} />)
+
+  if (model.pageSetup.marginMirror) {
+    settings.push(<w:mirrorMargins />)
   }
+  settings.push(<w:defaultTabStop w:val={toTwip(model.typography.tabWidth || DEFAULT_TAB_WIDTH)} />)
   if (model.typography.autoHyphenation) {
     settings.push(<w:autoHyphenation />)
   }
@@ -286,22 +314,51 @@ export function generateSettings(model: RichTextDocumentModel): string {
     settings.push(<w:consecutiveHyphenLimit w:val={model.typography.consecutiveHyphens} />)
   }
   if (model.typography.hyphenationHotZone !== undefined) {
-    settings.push(<w:hyphenationZone w:val={toTwips(model.typography.hyphenationHotZone)} />)
+    settings.push(<w:hyphenationZone w:val={toTwip(model.typography.hyphenationHotZone)} />)
   }
-
-  // Hyphenate caps from typography settings
   if (model.typography.hyphenateCaps !== undefined && !model.typography.hyphenateCaps) {
     settings.push(<w:doNotHyphenateCaps />)
   }
+  if (model.pageSetup.facingPages) {
+    settings.push(<w:evenAndOddHeaders />)
+  }
 
-  // View zoom kind settings
-  // Contextual spacing from typography settings
-  // if (model.typography.contextualSpacing) {
-  //   settings.push(<w:contextualSpacing />)
-  // }
-  // if (model.typography.widowControl !== undefined && !model.typography.widowControl) {
-  //   settings.push(<w:widowControl />)
-  // }
+  const footnoteFormatMap: Record<RTFPageSetup["footnoteNumbering"], string> = {
+    decimal: "decimal",
+    lowercase: "lowerLetter",
+    uppercase: "upperLetter",
+    lowerRoman: "lowerRoman",
+    upperRoman: "upperRoman",
+    chicago: "symbol",
+  }
+  const footnoteRestartMap: Record<RTFPageSetup["footnoteRestart"], string> = {
+    continuous: "continuous",
+    page: "eachPage",
+    section: "eachSection",
+  }
+  const footnotePositionMap: Record<RTFPageSetup["footnotePosition"], string> = {
+    bottom: "pageBottom",
+    beneath: "beneathText",
+    section: "sectEnd",
+    document: "docEnd",
+  }
+
+  settings.push(
+    <w:footnotePr>
+      <w:pos w:val={footnotePositionMap[model.pageSetup.footnotePosition || "bottom"]} />
+      <w:numFmt w:val={footnoteFormatMap[model.pageSetup.footnoteNumbering || "decimal"]} />
+      <w:numStart w:val={model.pageSetup.footnoteStartNumber || 1} />
+      <w:numRestart w:val={footnoteRestartMap[model.pageSetup.footnoteRestart || "continuous"]} />
+    </w:footnotePr>
+  )
+  settings.push(
+    <w:endnotePr>
+      <w:pos w:val="docEnd" />
+      <w:numFmt w:val={footnoteFormatMap[model.pageSetup.endnoteNumbering || "decimal"]} />
+      <w:numStart w:val={model.pageSetup.endnoteStartNumber || 1} />
+      <w:numRestart w:val="continuous" />
+    </w:endnotePr>
+  )
 
   // Compatibility settings
   settings.push(
@@ -310,5 +367,172 @@ export function generateSettings(model: RichTextDocumentModel): string {
     </w:compat>
   )
 
-  return XML_HEADER + <w:settings xmlns:w="http://purl.oclc.org/ooxml/wordprocessingml/main">{settings}</w:settings>
+  return XML_STANDALONE_HEADER + <w:settings xmlns:w={WORDPROCESSINGML_MAIN_NS}>{settings}</w:settings>
+}
+
+/** Generate list numbering */
+export function generateNumbering(model: OOXMLDocumentModel): string {
+  const children: JSX.IntrinsicElements[] = []
+
+  for (const entry of model.listRegistry.entries()) {
+    const list = entry.item
+    const levels: JSX.IntrinsicElements[] = []
+
+    list.levels.forEach((level, levelIndex) => {
+      const formattingChildren: JSX.IntrinsicElements[] = []
+      const indAttrs: Partial<JSX.IntrinsicElements["w:ind"]> = {}
+      const tabWidth = toTwip(model.typography.tabWidth || DEFAULT_TAB_WIDTH)
+      const leftIndent = toTwip(level.leftIndent, tabWidth * (1 + levelIndex / 2))
+      const firstLineIndent = toTwip(level.firstLineIndent, -tabWidth / 2)
+
+      formattingChildren.push(
+        <w:tabs>
+          <w:tab w:val="num" w:pos={0} />
+        </w:tabs>
+      )
+
+      indAttrs["w:start"] = leftIndent
+      if (firstLineIndent < 0) {
+        indAttrs["w:hanging"] = Math.abs(firstLineIndent)
+      } else {
+        indAttrs["w:firstLine"] = firstLineIndent
+      }
+      formattingChildren.push(<w:ind {...indAttrs} />)
+
+      // Numbering format
+      const levelChildren: JSX.IntrinsicElements[] = []
+
+      levelChildren.push(<w:start w:val={level.startAt || 1} />)
+
+      const numFmtMap: Record<RTFListLevel["format"], string> = {
+        none: "none",
+        decimal: "decimal",
+        bullet: "bullet",
+      }
+
+      levelChildren.push(<w:numFmt w:val={numFmtMap[level.format]} />)
+
+      switch (level.format) {
+        case "decimal":
+          levelChildren.push(<w:lvlText w:val={`%${levelIndex + 1}.`} />)
+          break
+        case "bullet":
+          if (levelIndex === 0) {
+            levelChildren.push(<w:lvlText w:val="&#x2022;" />)
+          } else if (levelIndex === 1) {
+            levelChildren.push(<w:lvlText w:val="&#x25E6;" />)
+          } else if (levelIndex === 2) {
+            levelChildren.push(<w:lvlText w:val="&#x25AA;" />)
+          } else if (levelIndex === 3) {
+            levelChildren.push(<w:lvlText w:val="&#x25AB;" />)
+          } else {
+            levelChildren.push(<w:lvlText w:val="&#x2022;" />)
+          }
+          break
+        case "none":
+          break
+      }
+
+      const alignMap: Record<Exclude<RTFListLevel["justification"], undefined>, string> = {
+        left: "start",
+        center: "center",
+        right: "end",
+      }
+
+      levelChildren.push(<w:lvlJc w:val={alignMap[level.justification || "left"]} />)
+      levelChildren.push(<w:pPr>{formattingChildren}</w:pPr>)
+
+      levels.push(<w:lvl w:ilvl={levelIndex}>{levelChildren}</w:lvl>)
+    })
+    children.push(<w:abstractNum w:abstractNumId={entry.index}>{levels}</w:abstractNum>)
+  }
+  for (const entry of model.listRegistry.entries()) {
+    children.push(
+      <w:num w:numId={entry.index}>
+        <w:abstractNumId w:val={entry.index} />
+      </w:num>
+    )
+  }
+
+  return XML_STANDALONE_HEADER + <w:numbering xmlns:w={WORDPROCESSINGML_MAIN_NS}>{children}</w:numbering>
+}
+
+/** Generate list numbering */
+export function generateFootnotes(model: OOXMLDocumentModel): string {
+  const children: JSX.IntrinsicElements[] = []
+  const pageWidth: number = toTwip(model.pageSetup.paperWidth)
+  const pageHeight: number = toTwip(model.pageSetup.paperHeight)
+  const marginLeft: number = toTwip(model.pageSetup.margin?.left)
+  const marginRight: number = toTwip(model.pageSetup.margin?.right)
+  const marginTop: number = toTwip(model.pageSetup.margin?.top)
+  const marginBottom: number = toTwip(model.pageSetup.margin?.bottom)
+  const gutter = toTwip(model.pageSetup.gutter)
+  const geometry: SectionGeometry = {
+    pageWidth,
+    pageHeight,
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+    gutter,
+    contentWidth: pageWidth - marginLeft - marginRight - gutter,
+    contentHeight: pageHeight - marginTop - marginBottom,
+  }
+
+  children.push(
+    <w:footnote w:id={0} w:type="separator">
+      <w:p>
+        <w:r />
+      </w:p>
+    </w:footnote>,
+    <w:footnote w:id={1} w:type="continuationSeparator">
+      <w:p>
+        <w:r />
+      </w:p>
+    </w:footnote>
+  )
+  for (const entry of model.footnoteRegistry.entries()) {
+    children.push(<w:footnote w:id={entry.index}>{generateParagraph(model, geometry, entry.item.content)}</w:footnote>)
+  }
+  return XML_STANDALONE_HEADER + <w:footnotes xmlns:w={WORDPROCESSINGML_MAIN_NS}>{children}</w:footnotes>
+}
+
+/** Generate list numbering */
+export function generateEndnotes(model: OOXMLDocumentModel): string {
+  const children: JSX.IntrinsicElements[] = []
+  const pageWidth: number = toTwip(model.pageSetup.paperWidth)
+  const pageHeight: number = toTwip(model.pageSetup.paperHeight)
+  const marginLeft: number = toTwip(model.pageSetup.margin?.left)
+  const marginRight: number = toTwip(model.pageSetup.margin?.right)
+  const marginTop: number = toTwip(model.pageSetup.margin?.top)
+  const marginBottom: number = toTwip(model.pageSetup.margin?.bottom)
+  const gutter = toTwip(model.pageSetup.gutter)
+  const geometry: SectionGeometry = {
+    pageWidth,
+    pageHeight,
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+    gutter,
+    contentWidth: pageWidth - marginLeft - marginRight - gutter,
+    contentHeight: pageHeight - marginTop - marginBottom,
+  }
+
+  children.push(
+    <w:endnote w:id={0} w:type="separator">
+      <w:p>
+        <w:r />
+      </w:p>
+    </w:endnote>,
+    <w:endnote w:id={1} w:type="continuationSeparator">
+      <w:p>
+        <w:r />
+      </w:p>
+    </w:endnote>
+  )
+  for (const entry of model.endnoteRegistry.entries()) {
+    children.push(<w:endnote w:id={entry.index}>{generateParagraph(model, geometry, entry.item.content)}</w:endnote>)
+  }
+  return XML_STANDALONE_HEADER + <w:endnotes xmlns:w={WORDPROCESSINGML_MAIN_NS}>{children}</w:endnotes>
 }

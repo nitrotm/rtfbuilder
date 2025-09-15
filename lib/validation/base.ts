@@ -1,5 +1,5 @@
 import { RichTextDocumentModel } from "../document"
-import { RTFBorder, RTFBorders, RTFColumnBreakElement, RTFElement, RTFRect, RTFShading, RTFSize } from "../types"
+import { RTFBorder, RTFBorders, RTFColumnBreakElement, RTFElement, RTFRect, RTFSize } from "../types"
 
 import { validateParagraph } from "./paragraph"
 import { validateTable } from "./table"
@@ -65,27 +65,6 @@ export function validateRTFBorders(model: RichTextDocumentModel, borders: Partia
     validateRTFBorder(model, borders.right, `${fieldName}.right`)
     validateRTFBorder(model, borders.bottom, `${fieldName}.bottom`)
     validateRTFBorder(model, borders.left, `${fieldName}.left`)
-  }
-}
-
-/**
- * Validate RTF shading object
- */
-export function validateRTFShading(model: RichTextDocumentModel, shading: Partial<RTFShading> | undefined): void {
-  if (shading) {
-    // Validate pattern (0-10000 representing hundredths of percent)
-    if (shading.ratio !== undefined && (shading.ratio < 0.0 || shading.ratio > 1.0)) {
-      throw new Error(`Shading ratio must be a number between 0.0 and 1.0, got ${shading.ratio}`)
-    }
-
-    // Validate color aliases
-    if (shading.foregroundColorAlias !== undefined && !model.colorRegistry.has(shading.foregroundColorAlias)) {
-      throw new Error(`Shading foreground color "${shading.foregroundColorAlias}" not found.`)
-    }
-
-    if (shading.backgroundColorAlias !== undefined && !model.colorRegistry.has(shading.backgroundColorAlias)) {
-      throw new Error(`Shading background color "${shading.backgroundColorAlias}" not found.`)
-    }
   }
 }
 
