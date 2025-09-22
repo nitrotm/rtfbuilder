@@ -3,7 +3,6 @@ declare global {
     interface IntrinsicElements {
       // "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
       "cp:coreProperties": {
-        xmlns: "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
         "xmlns:cp": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
         "xmlns:dc"?: "http://purl.org/dc/elements/1.1/"
         "xmlns:dcmitype"?: "http://purl.org/dc/dcmitype/"
@@ -16,6 +15,8 @@ declare global {
       "dc:language": { children?: any }
       "dc:title": { children?: any }
       "dc:subject": { children?: any }
+      "cp:lastModifiedBy": { children?: any }
+      "cp:revision": { children?: any }
       "cp:keywords": { children?: any }
       "dcterms:created": { "xsi:type"?: string; children?: any }
       "dcterms:modified": { "xsi:type"?: string; children?: any }
@@ -24,9 +25,19 @@ declare global {
       "w:document": {
         "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main" | "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
         "xmlns:r": "http://purl.oclc.org/ooxml/officeDocument/relationships" | "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        "xmlns:a"?: "http://purl.oclc.org/ooxml/drawingml/main"
-        "xmlns:wp"?: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"
-        "xmlns:pic"?: "http://purl.oclc.org/ooxml/drawingml/picture"
+        "xmlns:a"?: "http://purl.oclc.org/ooxml/drawingml/main" | "http://schemas.openxmlformats.org/drawingml/2006/main"
+        "xmlns:wp"?: "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing" | "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+        "xmlns:pic"?: "http://purl.oclc.org/ooxml/drawingml/picture" | "http://schemas.openxmlformats.org/drawingml/2006/picture"
+        "xmlns:wps"?: "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+        "xmlns:o"?: "urn:schemas-microsoft-com:office:office"
+        "xmlns:v"?: "urn:schemas-microsoft-com:vml"
+        "xmlns:mc"?: "http://schemas.openxmlformats.org/markup-compatibility/2006"
+        "xmlns:w10"?: "urn:schemas-microsoft-com:office:word"
+        "xmlns:wpg"?: "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+        "xmlns:wp14"?: "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+        "xmlns:w14"?: "http://schemas.microsoft.com/office/word/2010/wordml"
+        "xmlns:w15"?: "http://schemas.microsoft.com/office/word/2012/wordml"
+        "mc:Ignorable"?: string
         children?: any
       }
       "w:hdr": {
@@ -95,7 +106,7 @@ declare global {
       "w:pPr": { children?: any }
       "w:pStyle": { "w:val": string }
       "w:r": { children?: any }
-      "w:rFonts": { "w:ascii"?: string; "w:hAnsi"?: string; "w:cs"?: string; "w:eastAsia"?: string }
+      "w:rFonts": { "w:ascii"?: string; "w:hAnsi"?: string; "w:cs"?: string; "w:eastAsia"?: string; "w:hint"?: string }
       "w:right": { "w:val"?: string; "w:sz"?: number; "w:space"?: number; "w:color"?: string; "w:type"?: string; "w:w"?: number }
       "w:rPr": { children?: any }
       "w:rStyle": { "w:val": string }
@@ -143,7 +154,10 @@ declare global {
 
       // Styles
       "w:styles": {
-        "xmlns:w"?: "http://purl.oclc.org/ooxml/wordprocessingml/main" | "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main" | "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        "xmlns:w14"?: "http://schemas.microsoft.com/office/word/2010/wordml"
+        "xmlns:mc"?: "http://schemas.openxmlformats.org/markup-compatibility/2006"
+        "mc:Ignorable"?: string
         children?: any
       }
       "w:docDefaults": { children?: any }
@@ -161,7 +175,7 @@ declare global {
         children?: any
       }
       "w:view": { "w:val": string }
-      "w:zoom": { "w:val": "none" | "fullPage" | "bestFit" | "textFit"; "w:percent": string }
+      "w:zoom": { "w:val"?: "none" | "fullPage" | "bestFit" | "textFit"; "w:percent": string }
       "w:defaultTabStop": { "w:val": number }
       "w:autoHyphenation": { "w:val"?: boolean }
       "w:consecutiveHyphenLimit": { "w:val": number }
@@ -173,6 +187,7 @@ declare global {
       "w:endnotePr": { children?: any }
       "w:compat": { children?: any }
       "w:compatSetting": { "w:name": string; "w:uri": string; "w:val": string }
+      "w:themeFontLang": { "w:val"?: string; "w:eastAsia"?: string; "w:bidi"?: string }
 
       // Font table
       "w:fonts": {
@@ -180,6 +195,7 @@ declare global {
         "xmlns:r"?: "http://purl.oclc.org/ooxml/officeDocument/relationships" | "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         children?: any
       }
+      "w:charset": { "w:val": string; "w:characterSet"?: string }
       "w:font": { "w:name"?: string; children?: any }
       "w:family": { "w:val"?: string }
       "w:pitch": { "w:val"?: string }

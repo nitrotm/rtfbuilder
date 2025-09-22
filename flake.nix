@@ -122,10 +122,9 @@
                     word/styles.xml
                     word/settings.xml
                     word/fontTable.xml
-                    word/numbering.xml
                   )
                   wml_files+=(
-                    $(unzip -lqq "$1" | grep -o -E 'word/(header|firstHeader|evenHeader|footer|firstFooter|evenFooter)[0-9]+\.xml$' || echo)
+                    $(unzip -lqq "$1" | grep -o -E 'word/(header|firstHeader|evenHeader|footer|firstFooter|evenFooter|numbering)([0-9]+)?\.xml$' || echo)
                   )
                   echo "''${wml_files[@]}"
                   for i in "''${wml_files[@]}"; do

@@ -393,7 +393,7 @@ export class RTFRegistry<T> {
     }
 
     const newIndex = this._entries.length
-    const name = alias || `${this._options.prefix || "d"}${newIndex}`
+    const name = alias || `${this._options.prefix || "d"}${newIndex + (this._options.startAt || 0)}`
 
     if (this._aliasToIndex.has(name)) {
       throw new Error(`Alias "${name}" is already in use in this registry.`)

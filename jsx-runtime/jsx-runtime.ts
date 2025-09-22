@@ -66,7 +66,7 @@ class XmlElement extends XmlFragment {
     const childrenString = super.toString()
 
     propsString &&= ` ${propsString}`
-    return childrenString ? `<${this.name} ${propsString}>${childrenString}</${this.name}>` : `<${this.name} ${propsString} />`
+    return childrenString ? `<${this.name}${propsString}>${childrenString}</${this.name}>` : `<${this.name}${propsString} />`
   }
 }
 

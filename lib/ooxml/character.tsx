@@ -18,7 +18,7 @@ function wrapHyperlink(model: OOXMLDocumentModel, element: RTFCharacterElement, 
     case "external":
       return [
         <w:hyperlink
-          r:id={model.relationshipRegistry.register({
+          r:id={model.documentRelationshipRegistry.register({
             type: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
             target: element.link.url,
             targetMode: "External",
@@ -145,9 +145,9 @@ export function generateCharacterElement(
         flushLastRun()
         break
       case "picture":
-        const pictureId = model.relationshipRegistry.register({
+        const pictureId = model.documentRelationshipRegistry.register({
           type: RELATIONSHIP_TYPE_IMAGE,
-          target: `media/image${model.relationshipRegistry.size}${item.picture.format === "png" ? ".png" : item.picture.format === "jpeg" ? ".jpg" : ".dat"}`,
+          target: `media/image${model.documentRelationshipRegistry.size}${item.picture.format === "png" ? ".png" : item.picture.format === "jpeg" ? ".jpg" : ".dat"}`,
           data: item.picture.data,
         })
 

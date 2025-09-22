@@ -26,7 +26,6 @@ export function generateCoreProps(_model: OOXMLDocumentModel, options: Partial<O
     XML_STANDALONE_HEADER +
     (
       <cp:coreProperties
-        xmlns={CORE_PROPERTIES_NS}
         xmlns:cp={CORE_PROPERTIES_NS}
         xmlns:dc={DC_ELEMENTS_NS}
         xmlns:dcterms={DC_TERMS_NS}
@@ -38,6 +37,8 @@ export function generateCoreProps(_model: OOXMLDocumentModel, options: Partial<O
         <dc:language>en-US</dc:language>
         <dc:subject>{options.subject}</dc:subject>
         <dc:title>{options.title}</dc:title>
+        <cp:lastModifiedBy />
+        <cp:revision>0</cp:revision>
         <cp:keywords>{options.keywords}</cp:keywords>
         <dcterms:created xsi:type="dcterms:W3CDTF">{now}</dcterms:created>
         <dcterms:modified xsi:type="dcterms:W3CDTF">{now}</dcterms:modified>
@@ -68,13 +69,22 @@ export function generateDocument(model: OOXMLDocumentModel): string {
 
   // If no sections, add a default empty paragraph
   if (bodyContent.length === 0) {
-    bodyContent.push(<w:p></w:p>)
+    bodyContent.push(
+      <w:p>
+        <w:r></w:r>
+      </w:p>
+    )
+    // TODO: Add default section properties (page size, margins, etc.)
+    // bodyContent.push(
+    //   <w:sectPr>
+    //   </w:sectPr>
+    // )
   }
 
   return (
     XML_STANDALONE_HEADER +
     (
-      <w:document xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
+      <w:document xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
         <w:body>{bodyContent}</w:body>
       </w:document>
     )
@@ -254,6 +264,10 @@ export function generateFontTable(model: OOXMLDocumentModel): string {
 
     const fontChildren: JSX.IntrinsicElements[] = []
 
+    // <w:charset w:val="00" w:characterSet="windows-1252" />
+    // <w:charset w:val="01" w:characterSet="utf-8" />
+    // <w:charset w:val="02" />
+
     // Add font family
     if (font.family) {
       fontChildren.push(<w:family w:val={font.family} />)
@@ -276,7 +290,14 @@ export function generateFontTable(model: OOXMLDocumentModel): string {
     fonts.push(<w:font {...fontProps}>{fontChildren}</w:font>)
   }
 
-  return XML_STANDALONE_HEADER + <w:fonts xmlns:w={WORDPROCESSINGML_MAIN_NS}>{fonts}</w:fonts>
+  return (
+    XML_STANDALONE_HEADER +
+    (
+      <w:fonts xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
+        {fonts}
+      </w:fonts>
+    )
+  )
 }
 
 /** Generate settings */
@@ -301,7 +322,12 @@ export function generateSettings(model: OOXMLDocumentModel): string {
     textWidth: "textFit",
   }
 
-  settings.push(<w:zoom w:val={zoomKindMap[model.viewSettings.viewZoomKind || "none"]} w:percent={`${model.viewSettings.viewScale || 100}%`} />)
+  settings.push(
+    <w:zoom
+      w:val={model.viewSettings.viewZoomKind !== undefined ? zoomKindMap[model.viewSettings.viewZoomKind] : undefined}
+      w:percent={`${model.viewSettings.viewScale || 100}%`}
+    />
+  )
 
   if (model.pageSetup.marginMirror) {
     settings.push(<w:mirrorMargins />)
@@ -441,6 +467,11 @@ export function generateNumbering(model: OOXMLDocumentModel): string {
 
       levelChildren.push(<w:lvlJc w:val={alignMap[level.justification || "left"]} />)
       levelChildren.push(<w:pPr>{formattingChildren}</w:pPr>)
+      // levelChildren.push(
+      //   <w:rPr>
+      //     <w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:cs="Symbol" w:hint="default" />
+      //   </w:rPr>
+      // )
 
       levels.push(<w:lvl w:ilvl={levelIndex}>{levelChildren}</w:lvl>)
     })
@@ -454,7 +485,14 @@ export function generateNumbering(model: OOXMLDocumentModel): string {
     )
   }
 
-  return XML_STANDALONE_HEADER + <w:numbering xmlns:w={WORDPROCESSINGML_MAIN_NS}>{children}</w:numbering>
+  return (
+    XML_STANDALONE_HEADER +
+    (
+      <w:numbering xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
+        {children}
+      </w:numbering>
+    )
+  )
 }
 
 /** Generate list numbering */

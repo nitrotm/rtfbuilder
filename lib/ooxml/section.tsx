@@ -2,6 +2,8 @@ import { RTFPageSetup, RTFSection, RTFSectionFormatting } from "../types"
 import { toTwip } from "../utils"
 
 import {
+  CONTENT_TYPE_FOOTER,
+  CONTENT_TYPE_HEADER,
   generateElements,
   OOXMLDocumentModel,
   RELATIONSHIP_TYPE_FOOTER,
@@ -25,7 +27,15 @@ export function generateSection(model: OOXMLDocumentModel, section: RTFSection, 
   }
 
   // Add section properties at the end
-  content.push(properties)
+  if (index < model.sections.length - 1) {
+    content.push(
+      <w:p>
+        <w:pPr>{properties}</w:pPr>
+      </w:p>
+    )
+  } else {
+    content.push(properties)
+  }
   return content
 }
 
@@ -58,7 +68,7 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
 
   // Headers and footers
   if (formatting.titlePage && section.firstHeader) {
-    const firstHeaderId = model.relationshipRegistry.register({
+    const firstHeaderId = model.documentRelationshipRegistry.register({
       type: RELATIONSHIP_TYPE_HEADER,
       target: `firstHeader${index}.xml`,
       data: [
@@ -67,12 +77,13 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
           {generateElements(model, geometry, section.firstHeader)}
         </w:hdr>,
       ].join(""),
+      contentType: CONTENT_TYPE_HEADER,
     })
 
     sectPrChildren.push(<w:headerReference w:type="first" r:id={firstHeaderId} />)
   }
   if (section.header) {
-    const headerId = model.relationshipRegistry.register({
+    const headerId = model.documentRelationshipRegistry.register({
       type: RELATIONSHIP_TYPE_HEADER,
       target: `header${index}.xml`,
       data: [
@@ -81,10 +92,11 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
           {generateElements(model, geometry, section.header)}
         </w:hdr>,
       ].join(""),
+      contentType: CONTENT_TYPE_HEADER,
     })
     const evenHeaderId =
       section.evenHeader !== undefined
-        ? model.relationshipRegistry.register({
+        ? model.documentRelationshipRegistry.register({
             type: RELATIONSHIP_TYPE_HEADER,
             target: `evenHeader${index}.xml`,
             data: [
@@ -93,6 +105,7 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
                 {generateElements(model, geometry, section.evenHeader)}
               </w:hdr>,
             ].join(""),
+            contentType: CONTENT_TYPE_HEADER,
           })
         : headerId
 
@@ -100,7 +113,7 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
     sectPrChildren.push(<w:headerReference w:type="default" r:id={headerId} />)
   }
   if (formatting.titlePage && section.firstFooter) {
-    const firstFooterId = model.relationshipRegistry.register({
+    const firstFooterId = model.documentRelationshipRegistry.register({
       type: RELATIONSHIP_TYPE_FOOTER,
       target: `firstFooter${index}.xml`,
       data: [
@@ -109,12 +122,13 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
           {generateElements(model, geometry, section.firstFooter)}
         </w:ftr>,
       ].join(""),
+      contentType: CONTENT_TYPE_FOOTER,
     })
 
     sectPrChildren.push(<w:footerReference w:type="first" r:id={firstFooterId} />)
   }
   if (section.footer) {
-    const footerId = model.relationshipRegistry.register({
+    const footerId = model.documentRelationshipRegistry.register({
       type: RELATIONSHIP_TYPE_FOOTER,
       target: `footer${index}.xml`,
       data: [
@@ -123,10 +137,11 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
           {generateElements(model, geometry, section.footer)}
         </w:ftr>,
       ].join(""),
+      contentType: CONTENT_TYPE_FOOTER,
     })
     const evenFooterId =
       section.evenFooter !== undefined
-        ? model.relationshipRegistry.register({
+        ? model.documentRelationshipRegistry.register({
             type: RELATIONSHIP_TYPE_FOOTER,
             target: `evenFooter${index}.xml`,
             data: [
@@ -135,6 +150,7 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
                 {generateElements(model, geometry, section.evenFooter)}
               </w:ftr>,
             ].join(""),
+            contentType: CONTENT_TYPE_FOOTER,
           })
         : footerId
 
@@ -217,6 +233,18 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
     )
   }
 
+  // Vertical text alignment
+  if (formatting.valign !== undefined) {
+    const alignMap: Record<RTFSectionFormatting["valign"], string> = {
+      top: "start",
+      center: "center",
+      bottom: "end",
+      justified: "justified",
+    }
+
+    sectPrChildren.push(<w:jc w:val={alignMap[formatting.valign]} />)
+  }
+
   // Page numbering
   if (formatting.pageNumberFormat !== undefined) {
     const numberingMap: Record<RTFSectionFormatting["pageNumberFormat"], string> = {
@@ -225,18 +253,6 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
       lowerRoman: "lowerRoman",
       upperLetter: "upperLetter",
       lowerLetter: "lowerLetter",
-    }
-
-    // Vertical text alignment
-    if (formatting.valign !== undefined) {
-      const alignMap: Record<RTFSectionFormatting["valign"], string> = {
-        top: "start",
-        center: "center",
-        bottom: "end",
-        justified: "justified",
-      }
-
-      sectPrChildren.push(<w:jc w:val={alignMap[formatting.valign]} />)
     }
 
     sectPrChildren.push(
@@ -248,12 +264,5 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
     sectPrChildren.push(<w:titlePg />)
   }
 
-  return [
-    <w:p>
-      <w:pPr>
-        <w:sectPr>{sectPrChildren}</w:sectPr>
-      </w:pPr>
-    </w:p>,
-    geometry,
-  ]
+  return [<w:sectPr>{sectPrChildren}</w:sectPr>, geometry]
 }

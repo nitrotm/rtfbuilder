@@ -8,14 +8,31 @@ import { generateTable } from "./table"
 const XML_HEADER = `<?xml version="1.0" encoding="UTF-8"?>`
 
 export const XML_STANDALONE_HEADER = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>`
+
 export const CONTENT_TYPES_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
+export const CONTENT_TYPE_RELATIONSHIPS = "application/vnd.openxmlformats-package.relationships+xml"
+export const CONTENT_TYPE_CORE_PROPERTIES = "application/vnd.openxmlformats-package.core-properties+xml"
+export const CONTENT_TYPE_EXTENDED_PROPERTIES = "application/vnd.openxmlformats-officedocument.extended-properties+xml"
+export const CONTENT_TYPE_CUSTOM_PROPERTIES = "application/vnd.openxmlformats-officedocument.custom-properties+xml"
+export const CONTENT_TYPE_THEME = "application/vnd.openxmlformats-officedocument.theme+xml"
+export const CONTENT_TYPE_DOCUMENT = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
+export const CONTENT_TYPE_STYLES = "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"
+export const CONTENT_TYPE_FONT_TABLE = "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"
+export const CONTENT_TYPE_SETTINGS = "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"
+export const CONTENT_TYPE_NUMBERING = "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"
+export const CONTENT_TYPE_FOOTNOTES = "application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"
+export const CONTENT_TYPE_ENDNOTES = "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml"
+export const CONTENT_TYPE_HEADER = "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"
+export const CONTENT_TYPE_FOOTER = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"
 
 export const RELATIONSHIPS_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 export const RELATIONSHIP_TYPE_CORE_PROPERTIES = "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties"
+export const RELATIONSHIP_TYPE_CUSTOM_PROPERTIES = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties"
 export const RELATIONSHIP_TYPE_EXTENDED_PROPERTIES = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"
 export const RELATIONSHIP_TYPE_OFFICE_DOCUMENT = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
 export const RELATIONSHIP_TYPE_IMAGE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
 export const RELATIONSHIP_TYPE_STYLES = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
+export const RELATIONSHIP_TYPE_THEME = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"
 export const RELATIONSHIP_TYPE_FONT_TABLE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable"
 export const RELATIONSHIP_TYPE_SETTINGS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings"
 export const RELATIONSHIP_TYPE_NUMBERING = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering"
@@ -26,6 +43,7 @@ export const RELATIONSHIP_TYPE_FOOTER = "http://schemas.openxmlformats.org/offic
 
 export const CORE_PROPERTIES_NS = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
 export const EXTENDED_PROPERTIES_NS = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" // "http://purl.oclc.org/ooxml/officeDocument/extendedProperties"
+export const CUSTOM_PROPERTIES_NS = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties" // "http://purl.oclc.org/ooxml/officeDocument/customProperties"
 export const DOC_PROPS_VTYPES_NS = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes" // "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes"
 export const DC_ELEMENTS_NS = "http://purl.org/dc/elements/1.1/"
 export const DC_TERMS_NS = "http://purl.org/dc/terms/"
@@ -37,15 +55,23 @@ export const DRAWINGML_MAIN_NS = "http://schemas.openxmlformats.org/drawingml/20
 export const DRAWINGML_PICTURE_NS = "http://schemas.openxmlformats.org/drawingml/2006/picture" // "http://purl.oclc.org/ooxml/drawingml/picture"
 export const DRAWINGML_WORDPROCESSING_NS = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" // "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"
 
+export type OOXMLContentTypeOverride = {
+  partName: string
+  contentType: string
+}
+
 export type OOXMLRelationship = {
   type: string
   target: string
   targetMode?: "External"
   data?: string | Uint8Array<ArrayBufferLike>
+  contentType?: string
 }
 
 export type OOXMLDocumentModel = RichTextDocumentModel & {
-  relationshipRegistry: RTFRegistry<OOXMLRelationship>
+  contentTypeOverrides: OOXMLContentTypeOverride[]
+  packageRelationshipRegistry: RTFRegistry<OOXMLRelationship>
+  documentRelationshipRegistry: RTFRegistry<OOXMLRelationship>
   footnoteRegistry: RTFRegistry<RTFFootnoteElement>
   endnoteRegistry: RTFRegistry<RTFFootnoteElement>
 }
@@ -68,59 +94,34 @@ export function convertBorderProps(model: OOXMLDocumentModel, border: Partial<RT
   }
 }
 
-/** Content Types XML */
-export const CONTENT_TYPES = [
-  XML_HEADER,
-  `<Types xmlns="${CONTENT_TYPES_NS}">`,
-  '<Default Extension="xml" ContentType="application/xml" />',
-  '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
-  '<Default Extension="png" ContentType="image/png" />',
-  '<Default Extension="jpeg" ContentType="image/jpeg" />',
-  '<Override PartName="/_rels/.rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
-  '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml" />',
-  '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml" />',
-  '<Override PartName="/word/_rels/document.xml.rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />',
-  '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml" />',
-  '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml" />',
-  '<Override PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml" />',
-  '<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml" />',
-  "</Types>",
-].join("")
-
-/** Package relationships */
-export const PACKAGE_RELATIONSHIPS = [
-  XML_HEADER,
-  `<Relationships xmlns="${RELATIONSHIPS_NS}">`,
-  `<Relationship Id="rId1" Type="${RELATIONSHIP_TYPE_CORE_PROPERTIES}" Target="docProps/core.xml" />`,
-  `<Relationship Id="rId2" Type="${RELATIONSHIP_TYPE_EXTENDED_PROPERTIES}" Target="docProps/app.xml" />`,
-  `<Relationship Id="rId3" Type="${RELATIONSHIP_TYPE_OFFICE_DOCUMENT}" Target="word/document.xml" />`,
-  "</Relationships>",
-].join("")
-
-/** Application properties */
-export const APPLICATION_PROPERTIES = [
-  XML_STANDALONE_HEADER,
-  `<Properties xmlns="${EXTENDED_PROPERTIES_NS}" xmlns:vt="${DOC_PROPS_VTYPES_NS}">`,
-  "<Application>rtfbuilder</Application>",
-  "<AppVersion>1.0000</AppVersion>",
-  "<Pages>1</Pages>",
-  "<Words>51</Words>",
-  "<Characters>222</Characters>",
-  "<CharactersWithSpaces>261</CharactersWithSpaces>",
-  "<Paragraphs>12</Paragraphs>",
-  "</Properties>",
-].join("")
-
 function encodeXmlAttribute(value: string | undefined): string {
   if (value === undefined) return ""
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;")
 }
 
-/** Generate document relationships */
-export function generateDocumentRelationships(model: OOXMLDocumentModel) {
-  const parts = [XML_STANDALONE_HEADER, `<Relationships xmlns="${RELATIONSHIPS_NS}">`]
+/** Content Types XML */
+export function generateContentTypes(model: OOXMLDocumentModel) {
+  const parts = [
+    XML_HEADER,
+    `<Types xmlns="${CONTENT_TYPES_NS}">`,
+    '<Default Extension="xml" ContentType="application/xml" />',
+    `<Default Extension="rels" ContentType="${encodeXmlAttribute(CONTENT_TYPE_RELATIONSHIPS)}" />`,
+    '<Default Extension="png" ContentType="image/png" />',
+    '<Default Extension="jpeg" ContentType="image/jpeg" />',
+  ]
 
-  for (const entry of model.relationshipRegistry.entries()) {
+  for (const override of model.contentTypeOverrides.sort((a, b) => a.partName.localeCompare(b.partName))) {
+    parts.push(`<Override PartName="${encodeXmlAttribute(override.partName)}" ContentType="${encodeXmlAttribute(override.contentType)}" />`)
+  }
+  parts.push("</Types>")
+  return parts.join("")
+}
+
+/** Generate document relationships */
+export function generateRelationships(registry: RTFRegistry<OOXMLRelationship>) {
+  const parts = [XML_HEADER, `<Relationships xmlns="${RELATIONSHIPS_NS}">`]
+
+  for (const entry of registry.entries()) {
     parts.push(
       `<Relationship Id="${encodeXmlAttribute(entry.name)}"`,
       ` Type="${encodeXmlAttribute(entry.item.type)}"`,
@@ -134,6 +135,29 @@ export function generateDocumentRelationships(model: OOXMLDocumentModel) {
   }
   parts.push("</Relationships>")
   return parts.join("")
+}
+
+/** Application properties */
+export function generateApplicationProperties(_model: OOXMLDocumentModel) {
+  return [
+    XML_STANDALONE_HEADER,
+    `<Properties xmlns="${EXTENDED_PROPERTIES_NS}" xmlns:vt="${DOC_PROPS_VTYPES_NS}">`,
+    "<Template></Template>",
+    "<TotalTime>0</TotalTime>",
+    "<Application>rftbuilder/1.0</Application>",
+    "<AppVersion>1.0000</AppVersion>",
+    "<Pages>1</Pages>",
+    "<Words>0</Words>",
+    "<Characters>0</Characters>",
+    "<CharactersWithSpaces>0</CharactersWithSpaces>",
+    "<Paragraphs>0</Paragraphs>",
+    "</Properties>",
+  ].join("")
+}
+
+/** Custom properties */
+export function generateCustomProperties(_model: OOXMLDocumentModel) {
+  return [XML_STANDALONE_HEADER, `<Properties xmlns="${CUSTOM_PROPERTIES_NS}" xmlns:vt="${DOC_PROPS_VTYPES_NS}">`, "</Properties>"].join("")
 }
 
 /** Section geometry for layout calculations */
