@@ -937,6 +937,8 @@ __metadata:
     tslib: "npm:^2"
     tsx: "npm:^4"
     typescript: "npm:^5"
+  peerDependencies:
+    rtfbuilder-jsx-runtime: ^1
   languageName: unknown
   linkType: soft
 

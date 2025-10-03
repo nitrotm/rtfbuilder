@@ -1,3 +1,3 @@
-# jsx-to-xml
+# rtfbuilder-jsx-runtime
 
 Repackaging of [jsx-to-xml](https://github.com/k-yle/jsx-to-xml) as ESM module and proper support for XML entities encoding.

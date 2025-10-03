@@ -1,6 +1,6 @@
 {
   "name": "rtfbuilder",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "A comprehensive JavaScript library for creating Rich Text Format (RTF) documents.",
   "keywords": [
     "rtf",
@@ -74,6 +74,9 @@
   "dependencies": {
     "fflate": "^0.8",
     "rtfbuilder-jsx-runtime": "portal:./jsx-runtime"
+  },
+  "peerDependencies": {
+    "rtfbuilder-jsx-runtime": "^1"
   },
   "devDependencies": {
     "@types/node": "^20",
