@@ -1,6 +1,6 @@
 {
   "name": "rtfbuilder",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "A comprehensive JavaScript library for creating Rich Text Format (RTF) documents.",
   "keywords": [
     "rtf",
@@ -73,9 +73,6 @@
   ],
   "dependencies": {
     "fflate": "^0.8",
-    "rtfbuilder-jsx-runtime": "portal:./jsx-runtime"
-  },
-  "peerDependencies": {
     "rtfbuilder-jsx-runtime": "^1"
   },
   "devDependencies": {
@@ -83,6 +80,9 @@
     "tslib": "^2",
     "tsx": "^4",
     "typescript": "^5"
+  },
+  "resolutions": {
+    "rtfbuilder-jsx-runtime": "portal:./jsx-runtime"
   },
   "scripts": {
     "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
