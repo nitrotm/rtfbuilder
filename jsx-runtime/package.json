@@ -1,6 +1,6 @@
 {
   "name": "rtfbuilder-jsx-runtime",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "keywords": [
     "jsx-runtime",
     "xml"
@@ -22,34 +22,31 @@
   },
   "packageManager": "yarn@4.9.1",
   "type": "module",
-  "types": "dist/esm/jsx-runtime.d.ts",
-  "main": "dist/cjs/jsx-runtime.js",
-  "module": "dist/esm/jsx-runtime.js",
+  "types": "./dist/jsx-runtime.d.cts",
+  "main": "./dist/jsx-runtime.cjs",
+  "module": "./dist/jsx-runtime.js",
   "exports": {
-    "./jsx-runtime": {
-      "import": {
-        "types": "./dist/esm/jsx-runtime.d.ts",
-        "default": "./dist/esm/jsx-runtime.js"
-      },
-      "require": {
-        "types": "./dist/cjs/jsx-runtime.d.ts",
-        "default": "./dist/cjs/jsx-runtime.js"
-      }
-    }
+    ".": {
+      "import": "./dist/jsx-runtime.js",
+      "require": "./dist/jsx-runtime.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
-    "dist/cjs/**/!(*.tsbuildinfo)",
-    "dist/esm/**/!(*.tsbuildinfo)",
-    "jsx-runtime.ts",
+    "dist",
     "package.json",
     "LICENSE.txt",
     "README.md"
   ],
   "devDependencies": {
+    "tsdown": "^0.15",
     "typescript": "^5"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
-    "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
+    "build": "tsdown"
   }
 }

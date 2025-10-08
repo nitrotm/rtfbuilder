@@ -26,67 +26,39 @@
   },
   "packageManager": "yarn@4.9.1",
   "type": "module",
-  "types": "dist/cjs/index.d.ts",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "types": "./dist/index.d.cts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/index.d.ts",
-        "default": "./dist/cjs/index.js"
-      }
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
-    "./package.json": "./package.json",
+    "./builder": {
+      "import": "./dist/builder.js",
+      "require": "./dist/builder.cjs"
+    },
     "./html": {
-      "import": {
-        "types": "./dist/esm/html/index.d.ts",
-        "default": "./dist/esm/html/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/html/index.d.ts",
-        "default": "./dist/cjs/html/index.js"
-      }
+      "import": "./dist/html.js",
+      "require": "./dist/html.cjs"
     },
     "./ooxml": {
-      "import": {
-        "types": "./dist/esm/ooxml/index.d.ts",
-        "default": "./dist/esm/ooxml/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/ooxml/index.d.ts",
-        "default": "./dist/cjs/ooxml/index.js"
-      }
+      "import": "./dist/ooxml.js",
+      "require": "./dist/ooxml.cjs"
     },
     "./rtf": {
-      "import": {
-        "types": "./dist/esm/rtf/index.d.ts",
-        "default": "./dist/esm/rtf/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/rtf/index.d.ts",
-        "default": "./dist/cjs/rtf/index.js"
-      }
+      "import": "./dist/rtf.js",
+      "require": "./dist/rtf.cjs"
     },
     "./validation": {
-      "import": {
-        "types": "./dist/esm/validation/index.d.ts",
-        "default": "./dist/esm/validation/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/validation/index.d.ts",
-        "default": "./dist/cjs/validation/index.js"
-      }
-    }
+      "import": "./dist/validation.js",
+      "require": "./dist/validation.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
-    "dist/cjs/**/!(*.tsbuildinfo)",
-    "dist/esm/**/!(*.tsbuildinfo)",
-    "lib",
+    "dist",
     "package.json",
     "LICENSE.txt",
     "README.md"
@@ -98,6 +70,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@xmldom/xmldom": "^0.8",
+    "tsdown": "^0.15",
     "tslib": "^2",
     "tsx": "^4",
     "typescript": "^5"
@@ -105,7 +78,10 @@
   "resolutions": {
     "rtfbuilder-jsx-runtime": "portal:./jsx-runtime"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
-    "build": "tsc -b ./tsconfig.cjs.json ./tsconfig.esm.json"
+    "build": "tsdown"
   }
 }

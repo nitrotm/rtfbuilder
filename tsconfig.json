@@ -3,8 +3,8 @@
     "baseUrl": ".",
     "paths": {},
     "typeRoots": ["./node_modules/@types", "./types"],
-    "target": "ESNext",
-    "module": "ESNext",
+    "target": "es2018",
+    "module": "esnext",
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
@@ -33,5 +33,5 @@
     "verbatimModuleSyntax": false
   },
   "include": ["lib/**/*", "types/**/*"],
-  "exclude": ["jsx-runtime", "node_modules", "dist"]
+  "exclude": ["dist", "jsx-runtime", "node_modules"]
 }
