@@ -26,49 +26,60 @@
   },
   "packageManager": "yarn@4.9.1",
   "type": "module",
-  "typings": "dist/esm/index.d.ts",
+  "types": "dist/cjs/index.d.ts",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
     ".": {
-      "types": {
-        "import": "./dist/esm/index.d.ts",
-        "require": "./dist/cjs/index.d.ts"
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
       },
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     },
+    "./package.json": "./package.json",
     "./html": {
-      "types": {
-        "import": "./dist/esm/html/index.d.ts",
-        "require": "./dist/cjs/html/index.d.ts"
+      "import": {
+        "types": "./dist/esm/html/index.d.ts",
+        "default": "./dist/esm/html/index.js"
       },
-      "import": "./dist/esm/html/index.js",
-      "require": "./dist/cjs/html/index.js"
+      "require": {
+        "types": "./dist/cjs/html/index.d.ts",
+        "default": "./dist/cjs/html/index.js"
+      }
     },
     "./ooxml": {
-      "types": {
-        "import": "./dist/esm/ooxml/index.d.ts",
-        "require": "./dist/cjs/ooxml/index.d.ts"
+      "import": {
+        "types": "./dist/esm/ooxml/index.d.ts",
+        "default": "./dist/esm/ooxml/index.js"
       },
-      "import": "./dist/esm/ooxml/index.js",
-      "require": "./dist/cjs/ooxml/index.js"
+      "require": {
+        "types": "./dist/cjs/ooxml/index.d.ts",
+        "default": "./dist/cjs/ooxml/index.js"
+      }
     },
     "./rtf": {
-      "types": {
-        "import": "./dist/esm/rtf/index.d.ts",
-        "require": "./dist/cjs/rtf/index.d.ts"
+      "import": {
+        "types": "./dist/esm/rtf/index.d.ts",
+        "default": "./dist/esm/rtf/index.js"
       },
-      "import": "./dist/esm/rtf/index.js",
-      "require": "./dist/cjs/rtf/index.js"
+      "require": {
+        "types": "./dist/cjs/rtf/index.d.ts",
+        "default": "./dist/cjs/rtf/index.js"
+      }
     },
     "./validation": {
-      "types": {
-        "import": "./dist/esm/validation/index.d.ts",
-        "require": "./dist/cjs/validation/index.d.ts"
+      "import": {
+        "types": "./dist/esm/validation/index.d.ts",
+        "default": "./dist/esm/validation/index.js"
       },
-      "import": "./dist/esm/validation/index.js",
-      "require": "./dist/cjs/validation/index.js"
+      "require": {
+        "types": "./dist/cjs/validation/index.d.ts",
+        "default": "./dist/cjs/validation/index.js"
+      }
     }
   },
   "sideEffects": false,

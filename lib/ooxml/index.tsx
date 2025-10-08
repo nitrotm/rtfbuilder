@@ -53,7 +53,7 @@ export type OOXMLGenerationOptions = {
 }
 
 /** Generate OOXML document from the given model */
-export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
+export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array<ArrayBufferLike>> {
   /**
    * Create a new OOXML document
    */
@@ -64,7 +64,7 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
   /**
    * Render the document to the desired output format (ZIP file as Uint8Array)
    */
-  override render(options: Partial<OOXMLGenerationOptions> = {}): Uint8Array {
+  override render(options: Partial<OOXMLGenerationOptions> = {}): Uint8Array<ArrayBufferLike> {
     const files: Record<string, Uint8Array> = {}
     const model: OOXMLDocumentModel = {
       ...this.model,
