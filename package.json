@@ -35,33 +35,43 @@
       "require": "./dist/index.cjs"
     },
     "./builder": {
-      "import": "./dist/builder.js",
-      "require": "./dist/builder.cjs"
+      "import": "./dist/builder/index.js",
+      "require": "./dist/builder/index.cjs"
     },
     "./html": {
-      "import": "./dist/html.js",
-      "require": "./dist/html.cjs"
+      "import": "./dist/html/index.js",
+      "require": "./dist/html/index.cjs"
     },
     "./ooxml": {
-      "import": "./dist/ooxml.js",
-      "require": "./dist/ooxml.cjs"
+      "import": "./dist/ooxml/index.js",
+      "require": "./dist/ooxml/index.cjs"
     },
     "./rtf": {
-      "import": "./dist/rtf.js",
-      "require": "./dist/rtf.cjs"
+      "import": "./dist/rtf/index.js",
+      "require": "./dist/rtf/index.cjs"
     },
     "./validation": {
-      "import": "./dist/validation.js",
-      "require": "./dist/validation.cjs"
+      "import": "./dist/validation/index.js",
+      "require": "./dist/validation/index.cjs"
     },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
-    "dist",
-    "package.json",
-    "LICENSE.txt",
-    "README.md"
+    "*.md",
+    "*.json",
+    "*.cjs",
+    "*.cjs.map",
+    "*.d.cts",
+    "*.js",
+    "*.js.map",
+    "*.d.ts",
+    "**/*.cjs",
+    "**/*.cjs.map",
+    "**/*.d.cts",
+    "**/*.js",
+    "**/*.js.map",
+    "**/*.d.ts"
   ],
   "dependencies": {
     "fflate": "^0.8",
@@ -82,6 +92,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "build": "tsdown"
+    "compile": "tsc",
+    "build": "tsc && tsdown"
   }
 }

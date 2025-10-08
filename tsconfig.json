@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "dist",
     "paths": {},
     "typeRoots": ["./node_modules/@types", "./types"],
     "target": "es2018",
