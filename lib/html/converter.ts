@@ -1,4 +1,4 @@
-import { SectionBuilder } from "lib/builder/section"
+import { SectionBuilder } from "../builder/section"
 import { RichTextDocumentBuilder } from "../builder"
 import { ListItemBuilder } from "../builder/list"
 import { ParagraphBuilder } from "../builder/paragraph"

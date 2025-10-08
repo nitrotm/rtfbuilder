@@ -41,7 +41,7 @@ import {
   generateSettings,
   generateStyles,
 } from "./document"
-import { RTFRegistry } from "lib/utils"
+import { RTFRegistry } from "../utils"
 
 /** OOXML generation options */
 export type OOXMLGenerationOptions = {

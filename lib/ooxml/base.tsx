@@ -1,4 +1,4 @@
-import { RTFRegistry, toEighthPoint, toPoint } from "lib/utils"
+import { RTFRegistry, toEighthPoint, toPoint } from "../utils"
 import { DEFAULT_COLOR_ALIAS, RichTextDocumentModel } from "../document"
 import { RTFBorder, RTFColor, RTFColumnBreakElement, RTFElement, RTFFootnoteElement } from "../types"
 
