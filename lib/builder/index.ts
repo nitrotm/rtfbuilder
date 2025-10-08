@@ -129,7 +129,7 @@ export class RichTextDocumentBuilder {
     return alias
   }
   withFont(alias: string, value: RTFFont): this {
-    this._fonts[alias] = value
+    this._fonts[alias] = { ...(this._fonts[alias] || {}), ...value }
     return this
   }
 
@@ -140,7 +140,7 @@ export class RichTextDocumentBuilder {
     return alias
   }
   withStyle(alias: string, value: RTFStyle): this {
-    this._styles[alias] = value
+    this._styles[alias] = { ...(this._styles[alias] || {}), ...value }
     return this
   }
 

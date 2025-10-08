@@ -34,5 +34,5 @@ export abstract class RTFBuilder<T> {
     return this.container.section
   }
 
-  abstract build(): T
+  abstract build(): T | null
 }

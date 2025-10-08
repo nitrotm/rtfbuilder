@@ -37,7 +37,7 @@ class StaticBuilder<T> extends RTFBuilder<T> {
   }
 }
 
-class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
+export class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
   private readonly _children: RTFBuilder<RTFElement | RTFColumnBreakElement>[] = []
   private _lastParagraph: ParagraphBuilder | null = null
 
@@ -63,7 +63,7 @@ class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
   }
   get lastParagraph(): ParagraphBuilder {
     if (this._lastParagraph === null) {
-      this._lastParagraph = this.newParagraph()
+      this._lastParagraph = this.newParagraph().lazy()
     }
     return this._lastParagraph
   }
@@ -193,7 +193,7 @@ class SectionContentBuilder extends RTFBuilder<RTFContainerElement> {
   build(): RTFContainerElement {
     return {
       type: "container",
-      content: this._children.map((b) => b.build()) as RTFElement[],
+      content: this._children.map((b) => b.build()).filter((x) => x !== null) as RTFElement[],
     }
   }
 }

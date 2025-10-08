@@ -1,6 +1,6 @@
 {
   "name": "rtfbuilder",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "A comprehensive JavaScript library for creating Rich Text Format (RTF) documents.",
   "keywords": [
     "rtf",
@@ -37,6 +37,14 @@
       },
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
+    },
+    "./html": {
+      "types": {
+        "import": "./dist/esm/html/index.d.ts",
+        "require": "./dist/cjs/html/index.d.ts"
+      },
+      "import": "./dist/esm/html/index.js",
+      "require": "./dist/cjs/html/index.js"
     },
     "./ooxml": {
       "types": {
@@ -77,6 +85,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@xmldom/xmldom": "^0.8",
     "tslib": "^2",
     "tsx": "^4",
     "typescript": "^5"

@@ -41,12 +41,17 @@ export class FootnoteBuilder extends RTFBuilder<RTFFootnoteElement> {
     return this
   }
 
-  build(): RTFFootnoteElement {
+  build(): RTFFootnoteElement | null {
+    const content = this.paragraph.with({ footnoteMark: this._customMark || true }).build()
+
+    if (!content) {
+      return null
+    }
     return {
       type: "footnote",
       customMark: this._customMark,
       endnote: this._endnote,
-      content: this.paragraph.with({ footnoteMark: this._customMark || true }).build(),
+      content,
     }
   }
 }

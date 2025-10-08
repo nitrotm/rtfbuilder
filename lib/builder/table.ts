@@ -157,7 +157,7 @@ export class TableBuilder extends RTFBuilder<RTFTableElement> {
   }
 }
 
-class TableRowBuilder extends RTFBuilder<RTFTableRow> {
+export class TableRowBuilder extends RTFBuilder<RTFTableRow> {
   private readonly _children: TableCellBuilder[] = []
   private readonly _formatting: Partial<RTFTableRowFormatting> = {}
 
@@ -236,7 +236,7 @@ class TableRowBuilder extends RTFBuilder<RTFTableRow> {
   }
 }
 
-class TableCellBuilder extends RTFBuilder<RTFTableCell> {
+export class TableCellBuilder extends RTFBuilder<RTFTableCell> {
   private readonly _children: RTFBuilder<RTFElement>[] = []
   private readonly _formatting: Partial<RTFTableCellFormatting> = {}
   private _lastParagraph: ParagraphBuilder | null = null
@@ -261,7 +261,7 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
   }
   get lastParagraph(): ParagraphBuilder {
     if (this._lastParagraph === null) {
-      this._lastParagraph = this.newParagraph()
+      this._lastParagraph = this.newParagraph().lazy()
     }
     return this._lastParagraph
   }
@@ -387,7 +387,7 @@ class TableCellBuilder extends RTFBuilder<RTFTableCell> {
   build(): RTFTableCell {
     return {
       formatting: this._formatting,
-      content: this._children.map((x) => x.build()),
+      content: this._children.map((x) => x.build()).filter((x) => x !== null),
     }
   }
 }

@@ -16,9 +16,16 @@ import { pt } from "../utils"
 export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
   private readonly _children: CharacterBuilder[] = []
   private readonly _formatting: Partial<RTFParagraphFormatting> = {}
+  private _lazy: boolean = false
 
   get empty(): boolean {
     return !this._children.some((x) => !x.empty)
+  }
+  get lastChunk(): CharacterBuilder {
+    if (this._children.length === 0) {
+      return this.newChunk()
+    }
+    return this._children[this._children.length - 1]
   }
 
   newChunk(): CharacterBuilder {
@@ -75,6 +82,11 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
   }
   withExternalLink(url: string, text: string, formatting: Partial<RTFCharacterFormatting> = {}): this {
     this.newChunk().externalLink(url).with(formatting).text(text)
+    return this
+  }
+
+  lazy(): this {
+    this._lazy = true
     return this
   }
 
@@ -198,11 +210,14 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
     return this
   }
 
-  build(): RTFParagraphElement {
+  build(): RTFParagraphElement | null {
+    if (this._lazy && this.empty) {
+      return null
+    }
     return {
       type: "paragraph",
       formatting: this._formatting,
-      content: this._children.map((x) => x.build()),
+      content: this._children.map((x) => x.build()).filter((x) => x !== null),
     }
   }
 }

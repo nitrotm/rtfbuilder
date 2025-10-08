@@ -1,16 +1,16 @@
 import * as fs from "fs"
-import { dirname } from "path"
-import { fileURLToPath } from "url"
+import { DOMParser } from "@xmldom/xmldom"
 
-import { RichTextDocument, RichTextDocumentBuilder, RichTextDocumentValidator } from "../lib"
+import { RichTextDocument, RichTextDocumentValidator } from "../lib"
+import { createBuilderFromSimpleHtml } from "../lib/html"
 import { RTFDocument } from "../lib/rtf"
 import { OOXMLDocument } from "../lib/ooxml"
 import { RTF_DOCUMENT_VALIDATOR } from "../lib/validation"
 
 function usage(code: number): never {
-  console.log("Usage: cli.ts [--validate] <example> <output.ext>")
+  console.log("Usage: html.ts [--validate] <input.html> <output.ext>")
   console.log("  --validate: Validate the document structure before saving (optional)")
-  console.log("  example: Name of the example to run (e.g., footnote, table, image)")
+  console.log("  input.html: Path to input HTML file")
   console.log("  output.ext: Path to output file (either .rtf or .docx)")
   process.exit(code)
 }
@@ -18,7 +18,7 @@ function usage(code: number): never {
 // Parse command line arguments
 const args = process.argv.slice(2)
 let validator: RichTextDocumentValidator | undefined = undefined
-let example: string | undefined = undefined
+let input: string | undefined = undefined
 let output: string | undefined = undefined
 
 for (const arg of args) {
@@ -31,8 +31,8 @@ for (const arg of args) {
       validator = RTF_DOCUMENT_VALIDATOR
       break
     default:
-      if (example === undefined) {
-        example = `${dirname(fileURLToPath(import.meta.url))}/examples/${arg}.ts`
+      if (input === undefined) {
+        input = arg
         break
       }
       if (output === undefined) {
@@ -42,16 +42,18 @@ for (const arg of args) {
       usage(1)
   }
 }
-if (example === undefined || output === undefined) {
+if (input === undefined || output === undefined) {
   usage(1)
 }
-if (!fs.existsSync(example)) {
-  console.error(`${example} does not exist`)
+if (!fs.existsSync(input)) {
+  console.error(`${input} does not exist`)
   process.exit(1)
 }
 
-// Load example
-const builder: RichTextDocumentBuilder = (await import(example)).default
+// Parse input file
+const parser = new DOMParser()
+const html = parser.parseFromString(fs.readFileSync(input, "utf-8"), "text/html")
+const builder = await createBuilderFromSimpleHtml(html)
 
 // Create document
 let doc: RichTextDocument<string | Uint8Array>

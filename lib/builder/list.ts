@@ -1,4 +1,4 @@
-import { RTFCharacterFormatting, RTFContainerElement, RTFElement, RTFList, RTFListLevel, RTFPictureData, RTFPictureFormatting } from "../types"
+import { RTFCharacterFormatting, RTFContainerElement, RTFList, RTFListLevel, RTFPictureData, RTFPictureFormatting } from "../types"
 
 import { RTFBuilder, RTFSpecialContent } from "./base"
 import { ParagraphBuilder } from "./paragraph"
@@ -39,9 +39,6 @@ export class ListBuilder extends RTFBuilder<RTFContainerElement> {
   }
 
   level(index: number, level: RTFListLevel): this {
-    if (this._children.length > 0) {
-      throw new Error("List levels must be defined before adding items.")
-    }
     if (!this._formatting.levels) {
       this._formatting.levels = []
     }
@@ -50,12 +47,6 @@ export class ListBuilder extends RTFBuilder<RTFContainerElement> {
     return this
   }
   levels(...levels: RTFListLevel[]): this {
-    if (this._children.length > 0) {
-      throw new Error("List levels must be defined before adding items.")
-    }
-    if (!this._formatting.levels) {
-      this._formatting.levels = []
-    }
     this._formatting.levels = levels
     this.document.updateList(this.listAlias, this._formatting)
     return this
@@ -92,7 +83,7 @@ export class ListBuilder extends RTFBuilder<RTFContainerElement> {
   }
 }
 
-class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
+export class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
   private readonly _children: (ParagraphBuilder | ListItemBuilder)[] = []
   private _paragraph: ParagraphBuilder | null = null
   private _lastParagraph: ParagraphBuilder | null = null
@@ -113,7 +104,7 @@ class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
   }
   get lastParagraph(): ParagraphBuilder {
     if (this._lastParagraph === null) {
-      this._lastParagraph = this.newParagraph()
+      this._lastParagraph = this.newParagraph().lazy()
     }
     return this._lastParagraph
   }
@@ -184,7 +175,7 @@ class ListItemBuilder extends RTFBuilder<RTFContainerElement> {
   build(): RTFContainerElement {
     return {
       type: "container",
-      content: this._children.map((child) => child.build()) as RTFElement[],
+      content: this._children.map((child) => child.build()).filter((x) => x !== null),
     }
   }
 }

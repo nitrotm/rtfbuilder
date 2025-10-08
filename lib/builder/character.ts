@@ -12,13 +12,13 @@ import {
 import { RTFBuilder, SpecialContent } from "./base"
 import { FootnoteBuilder } from "./footnote"
 
-type InlineFactory = () => RTFCharacterContentElement
+type InlineFactory = () => RTFCharacterContentElement | null
 
 export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
+  private readonly _children: InlineFactory[] = []
   private readonly _formatting: Partial<RTFCharacterFormatting> = {}
   private _bookmarkAlias?: string
   private _link?: RTFHyperlink
-  private readonly _children: InlineFactory[] = []
 
   get empty(): boolean {
     return this._children.length === 0
@@ -186,13 +186,16 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
     return this
   }
 
-  build(): RTFCharacterElement {
+  build(): RTFCharacterElement | null {
+    if (this.empty) {
+      return null
+    }
     return {
       type: "character",
       formatting: this._formatting,
       bookmarkAlias: this._bookmarkAlias,
       link: this._link,
-      content: this._children.map((x) => x()),
+      content: this._children.map((x) => x()).filter((x) => x !== null),
     }
   }
 }
