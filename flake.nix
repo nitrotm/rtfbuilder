@@ -91,9 +91,10 @@
 
                   # bump package version
                   yarn version "''${1:-patch}"
+                  tag="v$(jq -r '.version' package.json)"
+                  git add package.json && git commit -m "release $tag"
 
                   # tag version & push to main and tag
-                  tag="v$(jq -r '.version' package.json)"
                   git tag "$tag" HEAD && git push && git push origin "$tag"
 
                   # create draft release
