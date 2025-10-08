@@ -352,12 +352,7 @@ export class RTFRegistry<T> {
   }
 
   index(alias: string): number {
-    const index = this._aliasToIndex.get(alias)
-
-    if (index === undefined) {
-      throw new Error(`Alias "${alias}" not found in this registry.`)
-    }
-    return index
+    return this.get(alias).index
   }
 
   get(alias: string | null | undefined): RegistryEntry<T> {
@@ -405,7 +400,7 @@ export class RTFRegistry<T> {
   }
 
   registerAsIndex(item: T, alias?: string): number {
-    return this.index(this.register(item, alias))
+    return this.get(this.register(item, alias)).index
   }
 
   copyFrom(other: RTFRegistry<T>): void {

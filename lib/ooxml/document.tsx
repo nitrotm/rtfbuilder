@@ -122,7 +122,9 @@ export function generateStyles(model: OOXMLDocumentModel): string {
 
     // Add style name
     styleChildren.push(<w:name w:val={style.name || styleEntry.name} />)
-    styleChildren.push(<w:basedOn w:val={style.baseStyleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS} />)
+    if (style.baseStyleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS !== styleEntry.name) {
+      styleChildren.push(<w:basedOn w:val={style.baseStyleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS} />)
+    }
     styleChildren.push(<w:next w:val={style.nextStyleAlias || styleEntry.name} />)
 
     // Add qFormat for quick styles (assuming all styles are quick styles for now)

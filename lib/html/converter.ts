@@ -7,12 +7,12 @@ import { RTFCharacterFormatting } from "../types"
 import { createPictureDataFromImage, pt } from "../utils"
 
 // paragraph styles
-export const HTML_STYLE_H1 = "heading1"
-export const HTML_STYLE_H2 = "heading2"
-export const HTML_STYLE_H3 = "heading3"
-export const HTML_STYLE_H4 = "heading4"
-export const HTML_STYLE_H5 = "heading5"
-export const HTML_STYLE_H6 = "heading6"
+export const HTML_STYLE_H1 = "heading 1"
+export const HTML_STYLE_H2 = "heading 2"
+export const HTML_STYLE_H3 = "heading 3"
+export const HTML_STYLE_H4 = "heading 4"
+export const HTML_STYLE_H5 = "heading 5"
+export const HTML_STYLE_H6 = "heading 6"
 export const HTML_STYLE_NORMAL = "normal"
 export const HTML_STYLE_CODE = "code"
 export const HTML_STYLE_QUOTE = "quote"
@@ -112,21 +112,21 @@ async function visitRootNode(node: ChildNode, section: SectionBuilder) {
       case "h6":
         await visitParagraphElement(
           node,
-          section.body.newParagraph(),
-          { styleAlias: `heading${parseInt(node.nodeName.substring(1))}` },
+          section.body.newParagraph().with({ styleAlias: `heading${parseInt(node.nodeName.substring(1))}` }),
+          {},
           { trimBefore: true, trimAfter: true }
         )
         break
       case "p":
       case "a":
       case "span":
-        await visitParagraphElement(node, section.body.newParagraph(), { styleAlias: HTML_STYLE_NORMAL }, { trimBefore: true, trimAfter: true })
+        await visitParagraphElement(node, section.body.newParagraph().with({ styleAlias: HTML_STYLE_NORMAL }), {}, { trimBefore: true, trimAfter: true })
         break
       case "pre":
-        await visitParagraphElement(node, section.body.newParagraph(), { styleAlias: HTML_STYLE_CODE }, { trimBefore: true, trimAfter: true })
+        await visitParagraphElement(node, section.body.newParagraph().with({ styleAlias: HTML_STYLE_CODE }), {}, { trimBefore: true, trimAfter: true })
         break
       case "blockquote":
-        await visitParagraphElement(node, section.body.newParagraph(), { styleAlias: HTML_STYLE_QUOTE }, { trimBefore: true, trimAfter: true })
+        await visitParagraphElement(node, section.body.newParagraph().with({ styleAlias: HTML_STYLE_QUOTE }), {}, { trimBefore: true, trimAfter: true })
         break
       case "ul":
       case "ol":
@@ -160,7 +160,7 @@ async function visitRootNode(node: ChildNode, section: SectionBuilder) {
         break
     }
   } else if (node.nodeType === TEXT_NODE) {
-    await visitParagraphElement(node, section.body.lastParagraph, { styleAlias: HTML_STYLE_NORMAL }, { trimBefore: true, trimAfter: true })
+    await visitParagraphElement(node, section.body.lastParagraph, {}, { trimBefore: true, trimAfter: true })
   }
 }
 
@@ -290,7 +290,7 @@ async function visitParagraphElement(
         break
       case "cite":
         childFormatting.styleAlias = HTML_STYLE_FOOTNOTE
-        childParagraph = paragraph.lastChunk.newFootnote().paragraph
+        childParagraph = paragraph.lastChunk.newFootnote().paragraph.with({ styleAlias: HTML_STYLE_FOOTNOTE })
         break
     }
 

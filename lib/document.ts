@@ -62,6 +62,7 @@ export type RichTextDocumentValidator = {
 /** RTF document constructor options */
 export type RichTextDocumentOptions = {
   defaultFont: RTFFont // Default font (default: Times New Roman)
+  defaultStyleName: string // Default paragraph style name (default: RTF)
   variables: Record<string, string> // Initial document variables
   colors: Record<string, RTFColor> // Initial color registry entries
   fonts: Record<string, RTFFont> // Initial font registry entries
@@ -186,6 +187,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
         charset: 0,
         pitch: "variable",
       },
+      defaultStyleName = "RTF",
     } = options
 
     this.model.colorRegistry.register({ red: 0, green: 0, blue: 0 }, DEFAULT_COLOR_ALIAS)
@@ -196,7 +198,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     this.model.styleRegistry.register(
       {
         type: "paragraph",
-        name: "RTF",
+        name: defaultStyleName,
         characterFormatting: {
           fontAlias: DEFAULT_FONT_ALIAS,
           fontSize: pt(12),

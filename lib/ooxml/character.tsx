@@ -37,24 +37,24 @@ function wrapHyperlink(
   return children
 }
 
-/** Generate run from RTFCharacterElement */
-export function generateCharacterElement(
+export function generateCharacterStyles(
   model: OOXMLDocumentModel,
-  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
-  _geometry: SectionGeometry,
   baseFormatting: Partial<RTFCharacterFormatting>,
-  element: RTFCharacterElement
+  element?: RTFCharacterElement
 ): JSX.IntrinsicElements[] {
   const formattingChildren: JSX.IntrinsicElements[] = []
-  let style = element.formatting.styleAlias !== undefined ? model.styleRegistry.get(element.formatting.styleAlias) : undefined
-  let formatting = { ...baseFormatting, ...(style?.item?.characterFormatting || {}), ...element.formatting, styleAlias: undefined }
+  let style = element?.formatting.styleAlias !== undefined ? model.styleRegistry.get(element.formatting.styleAlias) : undefined
+  let formatting = { ...baseFormatting, ...(style?.item?.characterFormatting || {}), ...(element?.formatting || {}), styleAlias: undefined }
 
   while (style?.item?.baseStyleAlias !== undefined && style.item.baseStyleAlias !== style.name) {
     style = model.styleRegistry.get(style.item.baseStyleAlias)
     formatting = { ...(style.item.characterFormatting || {}), ...formatting, styleAlias: undefined }
   }
-  if (element.formatting.styleAlias !== undefined) {
-    formattingChildren.push(<w:rStyle w:val={element.formatting.styleAlias} />)
+
+  const styleName = element?.formatting?.styleAlias || baseFormatting.styleAlias
+
+  if (styleName !== undefined) {
+    formattingChildren.push(<w:rStyle w:val={styleName} />)
   }
 
   const flags = formatting.flags || []
@@ -119,15 +119,30 @@ export function generateCharacterElement(
   } else if (flags.includes("superscript")) {
     formattingChildren.push(<w:vertAlign w:val="superscript" />)
   }
+  return formattingChildren
+}
 
+/** Generate run from RTFCharacterElement */
+export function generateCharacterElement(
+  model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
+  _geometry: SectionGeometry,
+  baseFormatting: Partial<RTFCharacterFormatting>,
+  element: RTFCharacterElement
+): JSX.IntrinsicElements[] {
   // Process content elements
+  const formattingChildren = generateCharacterStyles(model, baseFormatting, element)
   const children: JSX.IntrinsicElements[] = []
   let lastRun: JSX.IntrinsicElements[] = []
-  const flushLastRun = () => {
+  const flushLastRun = (overrideFormatting?: Partial<RTFCharacterFormatting>) => {
     if (lastRun.length > 0) {
+      const formattingChildrenWithOverride = overrideFormatting
+        ? generateCharacterStyles(model, { ...baseFormatting, ...overrideFormatting })
+        : formattingChildren
+
       children.push(
         <w:r>
-          {formattingChildren.length > 0 && <w:rPr>{formattingChildren}</w:rPr>}
+          {formattingChildrenWithOverride.length > 0 && <w:rPr>{formattingChildrenWithOverride}</w:rPr>}
           {lastRun}
         </w:r>
       )
@@ -141,6 +156,7 @@ export function generateCharacterElement(
         lastRun.push(<w:t xml:space="preserve">{item.text}</w:t>)
         break
       case "footnote":
+        flushLastRun()
         if (item.endnote) {
           lastRun.push(<w:endnoteReference w:id={model.endnoteRegistry.registerAsIndex(item)} w:customMarkFollows={item.customMark !== undefined} />)
         } else {
@@ -149,7 +165,7 @@ export function generateCharacterElement(
         if (item.customMark !== undefined) {
           lastRun.push(<w:t>{item.customMark}</w:t>)
         }
-        flushLastRun()
+        flushLastRun({ flags: ["superscript"] })
         break
       case "picture":
         const pictureId = relationshipRegistry.register({

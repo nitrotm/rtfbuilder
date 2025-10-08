@@ -134,25 +134,29 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
     upperRoman: "upperRoman",
     chicago: "symbol",
   }
-  const footnotePositionMap: Record<RTFPageSetup["footnotePosition"], string> = {
-    bottom: "pageBottom",
-    beneath: "beneathText",
-    section: "sectEnd",
-    document: "docEnd",
-  }
+  // const footnotePositionMap: Record<RTFPageSetup["footnotePosition"], string> = {
+  //   bottom: "pageBottom",
+  //   beneath: "beneathText",
+  //   section: "sectEnd",
+  //   document: "docEnd",
+  // }
 
-  sectPrChildren.push(
-    <w:footnotePr>
-      <w:pos w:val={footnotePositionMap[model.pageSetup.footnotePosition || "bottom"]} />
-      <w:numFmt w:val={footnoteFormatMap[model.pageSetup.footnoteNumbering || "decimal"]} />
-    </w:footnotePr>
-  )
-  sectPrChildren.push(
-    <w:endnotePr>
-      <w:pos w:val="docEnd" />
-      <w:numFmt w:val={footnoteFormatMap[model.pageSetup.endnoteNumbering || "decimal"]} />
-    </w:endnotePr>
-  )
+  if (model.footnoteRegistry.size > 0 && index === model.sections.length - 1) {
+    sectPrChildren.push(
+      <w:footnotePr>
+        {/* <w:pos w:val={footnotePositionMap[model.pageSetup.footnotePosition || "bottom"]} /> */}
+        <w:numFmt w:val={footnoteFormatMap[model.pageSetup.footnoteNumbering || "decimal"]} />
+      </w:footnotePr>
+    )
+  }
+  if (model.endnoteRegistry.size > 0 && index === model.sections.length - 1) {
+    sectPrChildren.push(
+      <w:endnotePr>
+        {/* <w:pos w:val="docEnd" /> */}
+        <w:numFmt w:val={footnoteFormatMap[model.pageSetup.endnoteNumbering || "decimal"]} />
+      </w:endnotePr>
+    )
+  }
 
   // Section break type
   if (formatting.sectionBreak) {

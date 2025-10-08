@@ -3,7 +3,7 @@ import { RTFCharacterFormatting, RTFParagraphElement, RTFParagraphFormatting } f
 import { RTFRegistry, toTwip } from "../utils"
 
 import { convertBorderProps, convertColorToHex, OOXMLDocumentModel, OOXMLRelationship, SectionGeometry } from "./base"
-import { generateCharacterElement } from "./character"
+import { generateCharacterElement, generateCharacterStyles } from "./character"
 
 /** Generate paragraph from RTFParagraphElement */
 export function generateParagraph(
@@ -15,12 +15,12 @@ export function generateParagraph(
   const formattingChildren: JSX.IntrinsicElements[] = []
   let style = model.styleRegistry.get(element.formatting.styleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS)
   let formatting = { ...(style.item.paragraphFormatting || {}), ...element.formatting, styleAlias: undefined }
-  let characterFormatting: Partial<RTFCharacterFormatting> = { ...(style.item.characterFormatting || {}), styleAlias: undefined }
+  let characterFormatting: Partial<RTFCharacterFormatting> = { ...(style.item.characterFormatting || {}), styleAlias: element.formatting.styleAlias }
 
   while (style.item.baseStyleAlias !== undefined && style.item.baseStyleAlias !== style.name) {
     style = model.styleRegistry.get(style.item.baseStyleAlias)
     formatting = { ...(style.item.paragraphFormatting || {}), ...formatting, styleAlias: undefined }
-    characterFormatting = { ...(style.item.characterFormatting || {}), ...characterFormatting, styleAlias: undefined }
+    characterFormatting = { ...(style.item.characterFormatting || {}), ...characterFormatting, styleAlias: element.formatting.styleAlias }
   }
   formattingChildren.push(<w:pStyle w:val={element.formatting.styleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS} />)
 
@@ -142,13 +142,19 @@ export function generateParagraph(
   for (const child of element.content) {
     children.push(...generateCharacterElement(model, relationshipRegistry, geometry, characterFormatting, child))
   }
+
+  const footnoteMarkFormatting = formatting.footnoteMark ? generateCharacterStyles(model, { ...characterFormatting }) : []
+
   return (
     <w:p>
       {formattingChildren.length > 0 && <w:pPr>{formattingChildren}</w:pPr>}
       {formatting.footnoteMark && (
         <>
           {formatting.footnoteMark === true && (
-            <w:r>{typeof formatting.footnoteMark === "string" ? <w:t>{formatting.footnoteMark}</w:t> : <w:footnoteRef />}</w:r>
+            <w:r>
+              {footnoteMarkFormatting.length > 0 && <w:rPr>{footnoteMarkFormatting}</w:rPr>}
+              {typeof formatting.footnoteMark === "string" ? <w:t>{formatting.footnoteMark}</w:t> : <w:footnoteRef />}
+            </w:r>
           )}
           <w:r>
             <w:tab />
