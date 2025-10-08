@@ -530,9 +530,18 @@ export function generateFootnotes(model: OOXMLDocumentModel): string {
     </w:footnote>
   )
   for (const entry of model.footnoteRegistry.entries()) {
-    children.push(<w:footnote w:id={entry.index}>{generateParagraph(model, geometry, entry.item.content)}</w:footnote>)
+    children.push(
+      <w:footnote w:id={entry.index}>{generateParagraph(model, model.relationshipRegistries["footnotes.xml"], geometry, entry.item.content)}</w:footnote>
+    )
   }
-  return XML_STANDALONE_HEADER + <w:footnotes xmlns:w={WORDPROCESSINGML_MAIN_NS}>{children}</w:footnotes>
+  return (
+    XML_STANDALONE_HEADER +
+    (
+      <w:footnotes xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
+        {children}
+      </w:footnotes>
+    )
+  )
 }
 
 /** Generate list numbering */
@@ -570,7 +579,16 @@ export function generateEndnotes(model: OOXMLDocumentModel): string {
     </w:endnote>
   )
   for (const entry of model.endnoteRegistry.entries()) {
-    children.push(<w:endnote w:id={entry.index}>{generateParagraph(model, geometry, entry.item.content)}</w:endnote>)
+    children.push(
+      <w:endnote w:id={entry.index}>{generateParagraph(model, model.relationshipRegistries["endnotes.xml"], geometry, entry.item.content)}</w:endnote>
+    )
   }
-  return XML_STANDALONE_HEADER + <w:endnotes xmlns:w={WORDPROCESSINGML_MAIN_NS}>{children}</w:endnotes>
+  return (
+    XML_STANDALONE_HEADER +
+    (
+      <w:endnotes xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
+        {children}
+      </w:endnotes>
+    )
+  )
 }

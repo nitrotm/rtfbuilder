@@ -282,7 +282,7 @@ async function visitParagraphElement(
         break
       case "a":
         childFormatting.styleAlias = "hyperlink"
-        return
+        break
       case "img":
         if (node.nodeName.toLowerCase() === "img") {
           paragraph.withPicture(await createPictureDataFromImage(node as HTMLImageElement, "jpeg"))

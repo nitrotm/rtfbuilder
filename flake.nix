@@ -72,6 +72,12 @@
                 release-preflight.exec = ''
                   set -eou pipefail
 
+                  # check that gh cli is authenticated
+                  if ! gh auth status -a >/dev/null 2>&1; then
+                    echo "Error: run 'gh auth login -h github.com -p ssh --skip-ssh-key -w' first"
+                    exit 1
+                  fi
+
                   # check that repo is up-to-date
                   if [[ ! -z "$(git status --porcelain)" ]]; then
                     echo "Error: uncommitted changes detected"

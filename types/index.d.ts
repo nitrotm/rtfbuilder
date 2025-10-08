@@ -221,12 +221,14 @@ declare global {
       // Footnotes / Endnotes
       "w:footnotes": {
         "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main" | "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        "xmlns:r"?: "http://purl.oclc.org/ooxml/officeDocument/relationships" | "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         children?: any
       }
       "w:footnote": { "w:id": number; "w:type"?: string; children?: any }
       "w:footnoteRef": {}
       "w:endnotes": {
         "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main" | "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        "xmlns:r"?: "http://purl.oclc.org/ooxml/officeDocument/relationships" | "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         children?: any
       }
       "w:endnote": { "w:id": number; "w:type"?: string; children?: any }

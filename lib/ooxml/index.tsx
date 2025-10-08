@@ -14,12 +14,12 @@ import {
   CONTENT_TYPE_RELATIONSHIPS,
   CONTENT_TYPE_SETTINGS,
   CONTENT_TYPE_STYLES,
+  createRelationshipRegistry,
   generateApplicationProperties,
   generateContentTypes,
   generateCustomProperties,
   generateRelationships,
   OOXMLDocumentModel,
-  OOXMLRelationship,
   RELATIONSHIP_TYPE_CORE_PROPERTIES,
   RELATIONSHIP_TYPE_CUSTOM_PROPERTIES,
   RELATIONSHIP_TYPE_ENDNOTES,
@@ -69,18 +69,14 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
     const model: OOXMLDocumentModel = {
       ...this.model,
       contentTypeOverrides: [],
-      packageRelationshipRegistry: new RTFRegistry<OOXMLRelationship>({
-        eq: (a, b) => a.type === b.type && a.target === b.target && a.targetMode === b.targetMode,
-        prefix: "rId",
-        startAt: 1,
-      }),
-      documentRelationshipRegistry: new RTFRegistry<OOXMLRelationship>({
-        eq: (a, b) => a.type === b.type && a.target === b.target && a.targetMode === b.targetMode,
-        prefix: "rId",
-        startAt: 1,
-      }),
+      packageRelationshipRegistry: createRelationshipRegistry(),
       footnoteRegistry: new RTFRegistry({ eq: () => false, prefix: "fn", startAt: 2 }),
       endnoteRegistry: new RTFRegistry({ eq: () => false, prefix: "en", startAt: 2 }),
+      relationshipRegistries: {
+        "document.xml": createRelationshipRegistry(),
+        "footnotes.xml": createRelationshipRegistry(),
+        "endnotes.xml": createRelationshipRegistry(),
+      },
     }
     const core_xml = generateCoreProps(model, options)
     const app_xml = generateApplicationProperties(model)
@@ -119,26 +115,26 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
       contentType: CONTENT_TYPE_DOCUMENT,
     })
 
-    model.documentRelationshipRegistry.register({
+    model.relationshipRegistries["document.xml"].register({
       type: RELATIONSHIP_TYPE_STYLES,
       target: "styles.xml",
       data: styles_xml,
       contentType: CONTENT_TYPE_STYLES,
     })
-    model.documentRelationshipRegistry.register({
+    model.relationshipRegistries["document.xml"].register({
       type: RELATIONSHIP_TYPE_FONT_TABLE,
       target: "fontTable.xml",
       data: fontTable_xml,
       contentType: CONTENT_TYPE_FONT_TABLE,
     })
-    model.documentRelationshipRegistry.register({
+    model.relationshipRegistries["document.xml"].register({
       type: RELATIONSHIP_TYPE_SETTINGS,
       target: "settings.xml",
       data: settings_xml,
       contentType: CONTENT_TYPE_SETTINGS,
     })
     if (model.listRegistry.size > 0) {
-      model.documentRelationshipRegistry.register({
+      model.relationshipRegistries["document.xml"].register({
         type: RELATIONSHIP_TYPE_NUMBERING,
         target: "numbering.xml",
         data: numbering_xml,
@@ -146,7 +142,7 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
       })
     }
     if (model.footnoteRegistry.size > 0) {
-      model.documentRelationshipRegistry.register({
+      model.relationshipRegistries["document.xml"].register({
         type: RELATIONSHIP_TYPE_FOOTNOTES,
         target: "footnotes.xml",
         data: footnotes_xml,
@@ -154,14 +150,14 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
       })
     }
     if (model.endnoteRegistry.size > 0) {
-      model.documentRelationshipRegistry.register({
+      model.relationshipRegistries["document.xml"].register({
         type: RELATIONSHIP_TYPE_ENDNOTES,
         target: "endnotes.xml",
         data: endnotes_xml,
         contentType: CONTENT_TYPE_ENDNOTES,
       })
     }
-    // model.documentRelationshipRegistry.register({
+    // model.relationshipRegistries["document.xml"].register({
     //   type: RELATIONSHIP_TYPE_THEME,
     //   target: "theme/theme1.xml",
     //   data: theme_xml,
@@ -182,7 +178,7 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
     files["_rels/.rels"] = encoder.encode(generateRelationships(model.packageRelationshipRegistry))
     model.contentTypeOverrides.push({ partName: "/_rels/.rels", contentType: CONTENT_TYPE_RELATIONSHIPS })
 
-    for (const entry of model.documentRelationshipRegistry.entries()) {
+    for (const entry of model.relationshipRegistries["document.xml"].entries()) {
       if (entry.item.data === undefined) {
         continue
       }
@@ -191,8 +187,13 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array> {
         model.contentTypeOverrides.push({ partName: `/word/${entry.item.target}`, contentType: entry.item.contentType })
       }
     }
-    files["word/_rels/document.xml.rels"] = encoder.encode(generateRelationships(model.documentRelationshipRegistry))
-    model.contentTypeOverrides.push({ partName: "/word/_rels/document.xml.rels", contentType: CONTENT_TYPE_RELATIONSHIPS })
+    for (const [filename, registry] of Object.entries(model.relationshipRegistries)) {
+      if (registry.size === 0) {
+        continue
+      }
+      files[`word/_rels/${filename}.rels`] = encoder.encode(generateRelationships(registry))
+      model.contentTypeOverrides.push({ partName: `/word/_rels/${filename}.rels`, contentType: CONTENT_TYPE_RELATIONSHIPS })
+    }
 
     files["[Content_Types].xml"] = encoder.encode(generateContentTypes(model))
     return zipSync(files)

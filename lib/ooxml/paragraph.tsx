@@ -1,12 +1,17 @@
 import { DEFAULT_PARAGRAPH_STYLE_ALIAS, DEFAULT_TAB_WIDTH } from "../document"
 import { RTFCharacterFormatting, RTFParagraphElement, RTFParagraphFormatting } from "../types"
-import { toTwip } from "../utils"
+import { RTFRegistry, toTwip } from "../utils"
 
-import { convertBorderProps, convertColorToHex, OOXMLDocumentModel, SectionGeometry } from "./base"
+import { convertBorderProps, convertColorToHex, OOXMLDocumentModel, OOXMLRelationship, SectionGeometry } from "./base"
 import { generateCharacterElement } from "./character"
 
 /** Generate paragraph from RTFParagraphElement */
-export function generateParagraph(model: OOXMLDocumentModel, geometry: SectionGeometry, element: RTFParagraphElement): JSX.IntrinsicElements {
+export function generateParagraph(
+  model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
+  geometry: SectionGeometry,
+  element: RTFParagraphElement
+): JSX.IntrinsicElements {
   const formattingChildren: JSX.IntrinsicElements[] = []
   let style = model.styleRegistry.get(element.formatting.styleAlias || DEFAULT_PARAGRAPH_STYLE_ALIAS)
   let formatting = { ...(style.item.paragraphFormatting || {}), ...element.formatting, styleAlias: undefined }
@@ -135,7 +140,7 @@ export function generateParagraph(model: OOXMLDocumentModel, geometry: SectionGe
   const children: JSX.IntrinsicElements[] = []
 
   for (const child of element.content) {
-    children.push(...generateCharacterElement(model, geometry, characterFormatting, child))
+    children.push(...generateCharacterElement(model, relationshipRegistry, geometry, characterFormatting, child))
   }
   return (
     <w:p>

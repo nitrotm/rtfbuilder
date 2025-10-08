@@ -1,5 +1,5 @@
 import { RTFCharacterElement, RTFCharacterFormatting } from "../types"
-import { toHalfPoint, toTwip } from "../utils"
+import { RTFRegistry, toHalfPoint, toTwip } from "../utils"
 
 import {
   convertColorToHex,
@@ -9,16 +9,22 @@ import {
   RELATIONSHIP_TYPE_IMAGE,
   SectionGeometry,
   DRAWINGML_WORDPROCESSING_NS,
+  OOXMLRelationship,
 } from "./base"
 
-function wrapHyperlink(model: OOXMLDocumentModel, element: RTFCharacterElement, children: JSX.IntrinsicElements[]): JSX.IntrinsicElements[] {
+function wrapHyperlink(
+  model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
+  element: RTFCharacterElement,
+  children: JSX.IntrinsicElements[]
+): JSX.IntrinsicElements[] {
   switch (element.link?.type) {
     case "bookmark":
       return [<w:hyperlink w:anchor={model.bookmarkRegistry.get(element.link.bookmarkAlias).item}>{children}</w:hyperlink>]
     case "external":
       return [
         <w:hyperlink
-          r:id={model.documentRelationshipRegistry.register({
+          r:id={relationshipRegistry.register({
             type: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
             target: element.link.url,
             targetMode: "External",
@@ -34,6 +40,7 @@ function wrapHyperlink(model: OOXMLDocumentModel, element: RTFCharacterElement, 
 /** Generate run from RTFCharacterElement */
 export function generateCharacterElement(
   model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
   _geometry: SectionGeometry,
   baseFormatting: Partial<RTFCharacterFormatting>,
   element: RTFCharacterElement
@@ -145,9 +152,9 @@ export function generateCharacterElement(
         flushLastRun()
         break
       case "picture":
-        const pictureId = model.documentRelationshipRegistry.register({
+        const pictureId = relationshipRegistry.register({
           type: RELATIONSHIP_TYPE_IMAGE,
-          target: `media/image${model.documentRelationshipRegistry.size}${item.picture.format === "png" ? ".png" : item.picture.format === "jpeg" ? ".jpg" : ".dat"}`,
+          target: `media/image${relationshipRegistry.size}${item.picture.format === "png" ? ".png" : item.picture.format === "jpeg" ? ".jpg" : ".dat"}`,
           data: item.picture.data,
         })
 
@@ -259,7 +266,7 @@ export function generateCharacterElement(
   }
   flushLastRun()
 
-  const run = wrapHyperlink(model, element, children)
+  const run = wrapHyperlink(model, relationshipRegistry, element, children)
 
   return element.bookmarkAlias !== undefined
     ? [

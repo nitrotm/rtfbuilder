@@ -1,9 +1,10 @@
-import { RTFPageSetup, RTFSection, RTFSectionFormatting } from "../types"
+import { RTFElement, RTFPageSetup, RTFSection, RTFSectionFormatting } from "../types"
 import { toTwip } from "../utils"
 
 import {
   CONTENT_TYPE_FOOTER,
   CONTENT_TYPE_HEADER,
+  createRelationshipRegistry,
   generateElements,
   OOXMLDocumentModel,
   RELATIONSHIP_TYPE_FOOTER,
@@ -19,7 +20,7 @@ export function generateSection(model: OOXMLDocumentModel, section: RTFSection, 
   const content: JSX.IntrinsicElements[] = []
   const [properties, geometry] = generateSectionProperties(model, section, index)
 
-  content.push(...generateElements(model, geometry, section.content))
+  content.push(...generateElements(model, model.relationshipRegistries["document.xml"], geometry, section.content))
 
   // If no content, add a default empty paragraph
   if (content.length === 0) {
@@ -67,92 +68,59 @@ function generateSectionProperties(model: OOXMLDocumentModel, section: RTFSectio
   }
 
   // Headers and footers
-  if (formatting.titlePage && section.firstHeader) {
-    const firstHeaderId = model.documentRelationshipRegistry.register({
+  function registerHeader(kind: "first" | "even" | "default", content: RTFElement[]): string {
+    const target = `${kind === "first" ? "firstHeader" : kind === "even" ? "evenHeader" : "header"}${index}.xml`
+
+    model.relationshipRegistries[target] ||= createRelationshipRegistry()
+    return model.relationshipRegistries["document.xml"].register({
       type: RELATIONSHIP_TYPE_HEADER,
-      target: `firstHeader${index}.xml`,
+      target,
       data: [
         XML_STANDALONE_HEADER,
         <w:hdr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
-          {generateElements(model, geometry, section.firstHeader)}
+          {generateElements(model, model.relationshipRegistries[target], geometry, content)}
         </w:hdr>,
       ].join(""),
       contentType: CONTENT_TYPE_HEADER,
     })
+  }
+  function registerFooter(kind: "first" | "even" | "default", content: RTFElement[]): string {
+    const target = `${kind === "first" ? "firstFooter" : kind === "even" ? "evenFooter" : "footer"}${index}.xml`
 
-    sectPrChildren.push(<w:headerReference w:type="first" r:id={firstHeaderId} />)
+    model.relationshipRegistries[target] ||= createRelationshipRegistry()
+    return model.relationshipRegistries["document.xml"].register({
+      type: RELATIONSHIP_TYPE_FOOTER,
+      target,
+      data: [
+        XML_STANDALONE_HEADER,
+        <w:ftr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
+          {generateElements(model, model.relationshipRegistries[target], geometry, content)}
+        </w:ftr>,
+      ].join(""),
+      contentType: CONTENT_TYPE_FOOTER,
+    })
+  }
+
+  if (formatting.titlePage && section.firstHeader) {
+    const headerId = registerHeader("first", section.firstHeader)
+
+    sectPrChildren.push(<w:headerReference w:type="first" r:id={headerId} />)
   }
   if (section.header) {
-    const headerId = model.documentRelationshipRegistry.register({
-      type: RELATIONSHIP_TYPE_HEADER,
-      target: `header${index}.xml`,
-      data: [
-        XML_STANDALONE_HEADER,
-        <w:hdr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
-          {generateElements(model, geometry, section.header)}
-        </w:hdr>,
-      ].join(""),
-      contentType: CONTENT_TYPE_HEADER,
-    })
-    const evenHeaderId =
-      section.evenHeader !== undefined
-        ? model.documentRelationshipRegistry.register({
-            type: RELATIONSHIP_TYPE_HEADER,
-            target: `evenHeader${index}.xml`,
-            data: [
-              XML_STANDALONE_HEADER,
-              <w:hdr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
-                {generateElements(model, geometry, section.evenHeader)}
-              </w:hdr>,
-            ].join(""),
-            contentType: CONTENT_TYPE_HEADER,
-          })
-        : headerId
+    const headerId = registerHeader("default", section.header)
+    const evenHeaderId = section.evenHeader !== undefined ? registerHeader("even", section.evenHeader) : headerId
 
     sectPrChildren.push(<w:headerReference w:type="even" r:id={evenHeaderId} />)
     sectPrChildren.push(<w:headerReference w:type="default" r:id={headerId} />)
   }
   if (formatting.titlePage && section.firstFooter) {
-    const firstFooterId = model.documentRelationshipRegistry.register({
-      type: RELATIONSHIP_TYPE_FOOTER,
-      target: `firstFooter${index}.xml`,
-      data: [
-        XML_STANDALONE_HEADER,
-        <w:ftr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
-          {generateElements(model, geometry, section.firstFooter)}
-        </w:ftr>,
-      ].join(""),
-      contentType: CONTENT_TYPE_FOOTER,
-    })
+    const footerId = registerFooter("first", section.firstFooter)
 
-    sectPrChildren.push(<w:footerReference w:type="first" r:id={firstFooterId} />)
+    sectPrChildren.push(<w:footerReference w:type="first" r:id={footerId} />)
   }
   if (section.footer) {
-    const footerId = model.documentRelationshipRegistry.register({
-      type: RELATIONSHIP_TYPE_FOOTER,
-      target: `footer${index}.xml`,
-      data: [
-        XML_STANDALONE_HEADER,
-        <w:ftr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
-          {generateElements(model, geometry, section.footer)}
-        </w:ftr>,
-      ].join(""),
-      contentType: CONTENT_TYPE_FOOTER,
-    })
-    const evenFooterId =
-      section.evenFooter !== undefined
-        ? model.documentRelationshipRegistry.register({
-            type: RELATIONSHIP_TYPE_FOOTER,
-            target: `evenFooter${index}.xml`,
-            data: [
-              XML_STANDALONE_HEADER,
-              <w:ftr xmlns:w={WORDPROCESSINGML_MAIN_NS} xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS}>
-                {generateElements(model, geometry, section.evenFooter)}
-              </w:ftr>,
-            ].join(""),
-            contentType: CONTENT_TYPE_FOOTER,
-          })
-        : footerId
+    const footerId = registerHeader("default", section.footer)
+    const evenFooterId = section.evenFooter !== undefined ? registerHeader("even", section.evenFooter) : footerId
 
     sectPrChildren.push(<w:footerReference w:type="even" r:id={evenFooterId} />)
     sectPrChildren.push(<w:footerReference w:type="default" r:id={footerId} />)

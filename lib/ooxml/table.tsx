@@ -1,7 +1,7 @@
 import { RTFTableCell, RTFTableCellFormatting, RTFTableElement, RTFTableFormatting, RTFTableRow, RTFTableRowFormatting } from "../types"
-import { mergeCellBorders, toTwip } from "../utils"
+import { mergeCellBorders, RTFRegistry, toTwip } from "../utils"
 
-import { convertBorderProps, convertColorToHex, generateElements, OOXMLDocumentModel, SectionGeometry } from "./base"
+import { convertBorderProps, convertColorToHex, generateElements, OOXMLDocumentModel, OOXMLRelationship, SectionGeometry } from "./base"
 
 /** Table geometry for layout calculations */
 type TableGeometry = {
@@ -10,7 +10,12 @@ type TableGeometry = {
 }
 
 /** Generate table from RTFTableElement */
-export function generateTable(model: OOXMLDocumentModel, geometry: SectionGeometry, element: RTFTableElement): JSX.IntrinsicElements {
+export function generateTable(
+  model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
+  geometry: SectionGeometry,
+  element: RTFTableElement
+): JSX.IntrinsicElements {
   const formattingChildren: JSX.IntrinsicElements[] = []
   const formatting = element.formatting || {}
 
@@ -82,7 +87,7 @@ export function generateTable(model: OOXMLDocumentModel, geometry: SectionGeomet
     const isFirstRow = index === 0
     const isLastRow = index === element.rows.length - 1
 
-    children.push(generateTableRow(model, geometry, tableGeometry, row, formatting, isFirstRow, isLastRow))
+    children.push(generateTableRow(model, relationshipRegistry, geometry, tableGeometry, row, formatting, isFirstRow, isLastRow))
   })
   return (
     <w:tbl>
@@ -95,6 +100,7 @@ export function generateTable(model: OOXMLDocumentModel, geometry: SectionGeomet
 /** Generate table row from RTFTableRow */
 function generateTableRow(
   model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
   geometry: SectionGeometry,
   tableGeometry: TableGeometry,
   row: RTFTableRow,
@@ -137,7 +143,22 @@ function generateTableRow(
         colSpan++
       }
     }
-    children.push(generateTableCell(model, geometry, tableGeometry, tableFormatting, formatting, cell, colSpan, isFirstRow, isLastRow, isFirstCell, isLastCell))
+    children.push(
+      generateTableCell(
+        model,
+        relationshipRegistry,
+        geometry,
+        tableGeometry,
+        tableFormatting,
+        formatting,
+        cell,
+        colSpan,
+        isFirstRow,
+        isLastRow,
+        isFirstCell,
+        isLastCell
+      )
+    )
   }
   return (
     <w:tr>
@@ -150,6 +171,7 @@ function generateTableRow(
 /** Generate table cell from RTFTableCell */
 function generateTableCell(
   model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
   geometry: SectionGeometry,
   _tableGeometry: TableGeometry,
   tableFormatting: Partial<RTFTableFormatting>,
@@ -229,7 +251,7 @@ function generateTableCell(
   const children: JSX.IntrinsicElements[] = []
 
   if (cell.content && cell.content.length > 0) {
-    children.push(...generateElements(model, geometry, cell.content))
+    children.push(...generateElements(model, relationshipRegistry, geometry, cell.content))
   }
   if (children.length === 0) {
     children.push(<w:p></w:p>)

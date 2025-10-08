@@ -68,12 +68,20 @@ export type OOXMLRelationship = {
   contentType?: string
 }
 
+export function createRelationshipRegistry() {
+  return new RTFRegistry<OOXMLRelationship>({
+    eq: (a, b) => a.type === b.type && a.target === b.target && a.targetMode === b.targetMode,
+    prefix: "rId",
+    startAt: 1,
+  })
+}
+
 export type OOXMLDocumentModel = RichTextDocumentModel & {
   contentTypeOverrides: OOXMLContentTypeOverride[]
   packageRelationshipRegistry: RTFRegistry<OOXMLRelationship>
-  documentRelationshipRegistry: RTFRegistry<OOXMLRelationship>
   footnoteRegistry: RTFRegistry<RTFFootnoteElement>
   endnoteRegistry: RTFRegistry<RTFFootnoteElement>
+  relationshipRegistries: Record<string, RTFRegistry<OOXMLRelationship>>
 }
 
 /** Convert RTFColor to hex string */
@@ -176,6 +184,7 @@ export type SectionGeometry = {
 /** Generate document content */
 export function generateElements(
   model: OOXMLDocumentModel,
+  relationshipRegistry: RTFRegistry<OOXMLRelationship>,
   geometry: SectionGeometry,
   elements: (RTFElement | RTFColumnBreakElement)[]
 ): JSX.IntrinsicElements[] {
@@ -185,13 +194,13 @@ export function generateElements(
     if ("type" in element) {
       switch (element.type) {
         case "paragraph":
-          content.push(generateParagraph(model, geometry, element))
+          content.push(generateParagraph(model, relationshipRegistry, geometry, element))
           break
         case "table":
-          content.push(generateTable(model, geometry, element))
+          content.push(generateTable(model, relationshipRegistry, geometry, element))
           break
         case "container":
-          content.push(...generateElements(model, geometry, element.content))
+          content.push(...generateElements(model, relationshipRegistry, geometry, element.content))
           break
         case "columnBreak":
           content.push(
