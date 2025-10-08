@@ -1,6 +1,6 @@
 {
   "name": "rtfbuilder-jsx-runtime",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "jsx-runtime",
     "xml"
@@ -22,23 +22,26 @@
   },
   "packageManager": "yarn@4.9.1",
   "type": "module",
-  "typings": "dist/esm/jsx-runtime.d.ts",
+  "types": "dist/esm/jsx-runtime.d.ts",
   "main": "dist/cjs/jsx-runtime.js",
   "module": "dist/esm/jsx-runtime.js",
   "exports": {
     "./jsx-runtime": {
-      "types": {
-        "import": "./dist/esm/jsx-runtime.d.ts",
-        "require": "./dist/cjs/jsx-runtime.d.ts"
+      "import": {
+        "types": "./dist/esm/jsx-runtime.d.ts",
+        "default": "./dist/esm/jsx-runtime.js"
       },
-      "import": "./dist/esm/jsx-runtime.js",
-      "require": "./dist/cjs/jsx-runtime.js"
+      "require": {
+        "types": "./dist/cjs/jsx-runtime.d.ts",
+        "default": "./dist/cjs/jsx-runtime.js"
+      }
     }
   },
   "sideEffects": false,
   "files": [
     "dist/cjs/**/!(*.tsbuildinfo)",
     "dist/esm/**/!(*.tsbuildinfo)",
+    "jsx-runtime.ts",
     "package.json",
     "LICENSE.txt",
     "README.md"

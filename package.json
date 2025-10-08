@@ -86,6 +86,7 @@
   "files": [
     "dist/cjs/**/!(*.tsbuildinfo)",
     "dist/esm/**/!(*.tsbuildinfo)",
+    "lib",
     "package.json",
     "LICENSE.txt",
     "README.md"
