@@ -47,7 +47,9 @@
               packages = with pkgs; [
                 curl
                 gitFull
+                gh
                 libxml2
+                jq
                 nodejs
                 nodePackages.prettier
                 xmlformat
@@ -67,6 +69,36 @@
                 javascript.enable = true;
               };
               scripts = {
+                release-preflight.exec = ''
+                  set -eou pipefail
+
+                  # check that repo is up-to-date
+                  if [[ ! -z "$(git status --porcelain)" ]]; then
+                    echo "Error: uncommitted changes detected"
+                    git status
+                    exit 1
+                  fi
+
+                  # check that we are on the main branch
+                  if [[ ! "$(git branch --show-current)" == "main" ]]; then
+                    echo "Error: not on main branch, currently on $(git branch --show-current)"
+                    exit 1
+                  fi
+
+                  # check that package can be built
+                  (cd ./jsx-runtime && yarn install --immutable && yarn build)
+                  yarn install --immutable && yarn build
+
+                  # bump package version
+                  yarn version "''${1:-patch}"
+
+                  # tag version & push to main and tag
+                  tag="v$(jq -r '.version' package.json)"
+                  git tag "$tag" HEAD && git push && git push origin "$tag"
+
+                  # create draft release
+                  gh release create "$tag" --draft --generate-notes
+                '';
                 run-demo.exec = ''
                   set -eou pipefail
 
