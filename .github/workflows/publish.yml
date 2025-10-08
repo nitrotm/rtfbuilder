@@ -19,8 +19,6 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: yarn
       - run: yarn install --immutable && yarn build
-        working-directory: ./jsx-runtime
-      - run: yarn install --immutable && yarn build
       - run: |
           actual_version="$(jq -r '.version' package.json)"
           if [ "$actual_version" != "${GITHUB_REF#refs/tags/v}" ]; then
