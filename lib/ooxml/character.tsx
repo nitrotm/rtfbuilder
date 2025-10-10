@@ -284,11 +284,18 @@ export function generateCharacterElement(
 
   const run = wrapHyperlink(model, relationshipRegistry, element, children)
 
-  return element.bookmarkAlias !== undefined
-    ? [
-        <w:bookmarkStart w:id={model.bookmarkRegistry.index(element.bookmarkAlias)} w:name={model.bookmarkRegistry.get(element.bookmarkAlias).item} />,
-        ...run,
-        <w:bookmarkEnd w:id={model.bookmarkRegistry.index(element.bookmarkAlias)} />,
-      ]
-    : run
+  if (element.bookmarkAlias !== undefined) {
+    run.unshift(<w:bookmarkStart w:id={model.bookmarkRegistry.index(element.bookmarkAlias)} w:name={model.bookmarkRegistry.get(element.bookmarkAlias).item} />)
+    run.push(<w:bookmarkEnd w:id={model.bookmarkRegistry.index(element.bookmarkAlias)} />)
+  }
+  if (element.comment !== undefined) {
+    run.unshift(<w:commentRangeStart w:id={model.commentRegistry.index(element.comment.alias)} />)
+    run.push(
+      <w:commentRangeEnd w:id={model.commentRegistry.index(element.comment.alias)} />,
+      <w:r>
+        <w:commentReference w:id={model.commentRegistry.index(element.comment.alias)} />
+      </w:r>
+    )
+  }
+  return run
 }

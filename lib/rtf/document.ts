@@ -239,7 +239,7 @@ export function generateDocumentInfo(model: RichTextDocumentModel, options: Part
   if (info.comment) parts.push(`{\\comment ${escapeRTFText(info.comment)}}`)
 
   // General informations
-  if (options.creationTime) parts.push(generateTimestamp("creatim", options.creationTime))
+  if (options.creationTime) parts.push(`{\\creatim${generateTimestamp(options.creationTime)}}`)
   if (options.version !== undefined) parts.push(`{\\version${options.version}}`)
   if (options.internalVersion !== undefined) parts.push(`{\\vern${options.internalVersion}}`)
 

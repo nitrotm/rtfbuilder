@@ -10,6 +10,7 @@ import {
 } from "../types"
 
 import { RTFBuilder, SpecialContent } from "./base"
+import { CommentBuilder } from "./comment"
 import { FootnoteBuilder } from "./footnote"
 
 type InlineFactory = () => RTFCharacterContentElement | null
@@ -19,6 +20,7 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
   private readonly _formatting: Partial<RTFCharacterFormatting> = {}
   private _bookmarkAlias?: string
   private _link?: RTFHyperlink
+  readonly comment = new CommentBuilder(this)
 
   get empty(): boolean {
     return this._children.length === 0
@@ -195,6 +197,7 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
       formatting: this._formatting,
       bookmarkAlias: this._bookmarkAlias,
       link: this._link,
+      comment: this.comment.build() || undefined,
       content: this._children.map((x) => x()).filter((x) => x !== null),
     }
   }

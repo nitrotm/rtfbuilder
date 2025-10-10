@@ -277,14 +277,23 @@ export type RTFHyperlink =
       url: string // For http:// or https:// or file:/// links
     }
 
+/** Comment definition - \annotation */
+export type RTFComment = {
+  alias: string
+  timestamp: Date
+  author: string
+  content: RTFParagraphElement // Content of the comment
+}
+
 /** Character element with inline content and formatting */
 export type RTFCharacterElement = {
   type: "character"
   formatting: Partial<RTFCharacterFormatting>
   bookmarkAlias?: string
   link?: RTFHyperlink
+  comment?: RTFComment
   content: RTFCharacterContentElement[]
-} // Plain text with formatting
+}
 
 /** Paragraph flags: \keep \keepn \pagebb \noline \nosupersub \contextualspace \hyphpar \nowidctlpar */
 export type RTFParagraphFlag =

@@ -234,6 +234,17 @@ declare global {
       "w:endnote": { "w:id": number; "w:type"?: string; children?: any }
       "w:endnoteRef": {}
 
+      // Comments
+      "w:comments": {
+        "xmlns:w": "http://purl.oclc.org/ooxml/wordprocessingml/main" | "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        "xmlns:r"?: "http://purl.oclc.org/ooxml/officeDocument/relationships" | "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        children?: any
+      }
+      "w:comment": { "w:id": number; "w:author": string; "w:date": string; "w:initials": string; children?: any }
+      "w:commentRangeStart": { "w:id": number }
+      "w:commentRangeEnd": { "w:id": number }
+      "w:commentReference": { "w:id": number }
+
       // "http://purl.oclc.org/ooxml/drawingml/main"
       "a:graphic": { "xmlns:a": "http://purl.oclc.org/ooxml/drawingml/main" | "http://schemas.openxmlformats.org/drawingml/2006/main"; children?: any }
       "a:graphicData": { uri: string; children?: any }

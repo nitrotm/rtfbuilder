@@ -2,7 +2,8 @@ import { RichTextDocumentModel, FOOTNOTE_BACKGROUND_COLOR_ALIAS, FOOTNOTE_COLOR_
 import { RTFCharacterElement, RTFCharacterFlag, RTFCharacterFormatting, RTFFootnoteElement, RTFPictureElement, RTFPictureType } from "../types"
 import { toHalfPoint, toTwip } from "../utils"
 
-import { escapeRTFText, generateElement, SectionGeometry } from "./base"
+import { escapeRTFText, generateDTTMTimestamp, generateElement, SectionGeometry } from "./base"
+import { generateParagraph } from "./paragraph"
 
 /** Generate character formatting control words */
 export function generateCharacterFormatting(model: RichTextDocumentModel, formatting: Partial<RTFCharacterFormatting> = {}): string {
@@ -82,6 +83,12 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
   // Bookmark start
   if (element.bookmarkAlias !== undefined) {
     parts.push(`{\\*\\bkmkstart bk${model.bookmarkRegistry.index(element.bookmarkAlias)}}`)
+    needSpace = false
+  }
+
+  // Comment start
+  if (element.comment !== undefined) {
+    parts.push(`{\\*\\atrfstart ${model.commentRegistry.index(element.comment.alias)}}`)
     needSpace = false
   }
 
@@ -175,6 +182,19 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
   // Bookmark end
   if (element.bookmarkAlias !== undefined) {
     parts.push(`{\\*\\bkmkend bk${model.bookmarkRegistry.index(element.bookmarkAlias)}}`)
+    needSpace = false
+  }
+
+  // Comment end
+  if (element.comment !== undefined) {
+    const commentIndex = model.commentRegistry.index(element.comment.alias)
+    const initials = element.comment.author.match(/\b\w/g)?.join("").toUpperCase() || "??"
+
+    parts.push(`{\\*\\atrfend ${commentIndex}}`)
+    parts.push(`{\\*\\atnid ${escapeRTFText(initials)}}{\\*\\atnauthor ${escapeRTFText(element.comment.author)}}`)
+    parts.push(`\\chatn{\\*\\annotation{\\*\\atndate ${generateDTTMTimestamp(element.comment.timestamp)}}{\\*\\atnref ${commentIndex}}`)
+    parts.push(generateParagraph(model, geometry, element.comment.content))
+    parts.push("}")
     needSpace = false
   }
 

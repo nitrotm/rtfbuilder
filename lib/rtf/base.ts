@@ -19,8 +19,21 @@ export function escapeRTFText(text: string): string {
 }
 
 /** Generate a timestamp in RTF format */
-export function generateTimestamp(type: string, date: Date): string {
-  return `{\\${type}\\yr${date.getFullYear()}\\mo${date.getMonth() + 1}\\dy${date.getDate()}\\hr${date.getHours()}\\min${date.getMinutes()}\\sec${date.getSeconds()}}`
+export function generateTimestamp(date: Date): string {
+  return `\\yr${date.getFullYear()}\\mo${date.getMonth() + 1}\\dy${date.getDate()}\\hr${date.getHours()}\\min${date.getMinutes()}\\sec${date.getSeconds()}`
+}
+
+/** Generate dttm date */
+export function generateDTTMTimestamp(date: Date): number {
+  const year = Math.min(511, Math.max(0, date.getFullYear() - 1900))
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const dayOfWeek = date.getDay()
+  const hour = date.getHours()
+  const minute = date.getMinutes()
+  const value = (dayOfWeek << 29) | (year << 20) | (month << 16) | (day << 11) | (hour << 6) | minute
+
+  return value > 2147483647 ? value - 4294967296 : value
 }
 
 /** Generate border style control words */

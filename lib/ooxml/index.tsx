@@ -3,6 +3,7 @@ import { zipSync } from "fflate"
 import { AbstractRichTextDocument, RichTextDocumentOptions } from "../document"
 
 import {
+  CONTENT_TYPE_COMMENTS,
   CONTENT_TYPE_CORE_PROPERTIES,
   CONTENT_TYPE_CUSTOM_PROPERTIES,
   CONTENT_TYPE_DOCUMENT,
@@ -20,6 +21,7 @@ import {
   generateCustomProperties,
   generateRelationships,
   OOXMLDocumentModel,
+  RELATIONSHIP_TYPE_COMMENTS,
   RELATIONSHIP_TYPE_CORE_PROPERTIES,
   RELATIONSHIP_TYPE_CUSTOM_PROPERTIES,
   RELATIONSHIP_TYPE_ENDNOTES,
@@ -32,6 +34,7 @@ import {
   RELATIONSHIP_TYPE_STYLES,
 } from "./base"
 import {
+  generateComments,
   generateCoreProps,
   generateDocument,
   generateEndnotes,
@@ -76,6 +79,7 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array<ArrayBuff
         "document.xml": createRelationshipRegistry(),
         "footnotes.xml": createRelationshipRegistry(),
         "endnotes.xml": createRelationshipRegistry(),
+        "comments.xml": createRelationshipRegistry(),
       },
     }
     const core_xml = generateCoreProps(model, options)
@@ -88,7 +92,7 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array<ArrayBuff
     const numbering_xml = generateNumbering(model)
     const footnotes_xml = generateFootnotes(model)
     const endnotes_xml = generateEndnotes(model)
-    // const theme_xml = generateTheme(model)
+    const comments_xml = generateComments(model)
 
     model.packageRelationshipRegistry.register({
       type: RELATIONSHIP_TYPE_CORE_PROPERTIES,
@@ -157,12 +161,14 @@ export class OOXMLDocument extends AbstractRichTextDocument<Uint8Array<ArrayBuff
         contentType: CONTENT_TYPE_ENDNOTES,
       })
     }
-    // model.relationshipRegistries["document.xml"].register({
-    //   type: RELATIONSHIP_TYPE_THEME,
-    //   target: "theme/theme1.xml",
-    //   data: theme_xml,
-    //   contentType: "application/vnd.openxmlformats-officedocument.theme+xml",
-    // })
+    if (model.commentRegistry.size > 0) {
+      model.relationshipRegistries["document.xml"].register({
+        type: RELATIONSHIP_TYPE_COMMENTS,
+        target: "comments.xml",
+        data: comments_xml,
+        contentType: CONTENT_TYPE_COMMENTS,
+      })
+    }
 
     const encoder = new TextEncoder()
 

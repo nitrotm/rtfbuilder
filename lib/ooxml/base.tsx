@@ -24,6 +24,7 @@ export const CONTENT_TYPE_FOOTNOTES = "application/vnd.openxmlformats-officedocu
 export const CONTENT_TYPE_ENDNOTES = "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml"
 export const CONTENT_TYPE_HEADER = "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"
 export const CONTENT_TYPE_FOOTER = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"
+export const CONTENT_TYPE_COMMENTS = "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"
 
 export const RELATIONSHIPS_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 export const RELATIONSHIP_TYPE_CORE_PROPERTIES = "http://schemas.openxmlformats.org/officedocument/2006/relationships/metadata/core-properties"
@@ -40,6 +41,7 @@ export const RELATIONSHIP_TYPE_FOOTNOTES = "http://schemas.openxmlformats.org/of
 export const RELATIONSHIP_TYPE_ENDNOTES = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes"
 export const RELATIONSHIP_TYPE_HEADER = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header"
 export const RELATIONSHIP_TYPE_FOOTER = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer"
+export const RELATIONSHIP_TYPE_COMMENTS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments"
 
 export const CORE_PROPERTIES_NS = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
 export const EXTENDED_PROPERTIES_NS = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" // "http://purl.oclc.org/ooxml/officeDocument/extendedProperties"

@@ -1,5 +1,5 @@
 import { RichTextDocument } from "../document"
-import { RTFCharset, RTFColor, RTFDocumentInfo, RTFFont, RTFList, RTFPageSetup, RTFStyle, RTFTypographySettings, RTFViewSettings } from "../types"
+import { RTFCharset, RTFColor, RTFComment, RTFDocumentInfo, RTFFont, RTFList, RTFPageSetup, RTFStyle, RTFTypographySettings, RTFViewSettings } from "../types"
 import { mm, toTwip } from "../utils"
 
 import { SectionBuilder } from "./section"
@@ -32,6 +32,7 @@ export class RichTextDocumentBuilder {
   private _styles: Record<string, RTFStyle> = {}
   private _lists: Record<string, RTFList> = {}
   private _bookmarks: Record<string, string> = {}
+  private _comments: Record<string, RTFComment> = {}
 
   // Sections
   private _sections: SectionBuilder[] = []
@@ -179,6 +180,13 @@ export class RichTextDocumentBuilder {
     return this
   }
 
+  newComment(comment: Omit<RTFComment, "alias">): string {
+    const commentAlias = `cm${Object.keys(this._comments).length + 1}`
+
+    this._comments[commentAlias] = { ...comment, alias: commentAlias }
+    return commentAlias
+  }
+
   buildInto<T extends RichTextDocument<unknown>>(document: T): T {
     document
       .charset(this._charset)
@@ -193,6 +201,7 @@ export class RichTextDocumentBuilder {
       .lists(this._lists)
       .bookmarks(this._bookmarks)
       .sections(...this._sections.map((s) => s.build()))
+      .comments(this._comments)
     return document
   }
 }

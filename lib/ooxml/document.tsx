@@ -497,7 +497,7 @@ export function generateNumbering(model: OOXMLDocumentModel): string {
   )
 }
 
-/** Generate list numbering */
+/** Generate footnotes */
 export function generateFootnotes(model: OOXMLDocumentModel): string {
   const children: JSX.IntrinsicElements[] = []
   const pageWidth: number = toTwip(model.pageSetup.paperWidth)
@@ -546,7 +546,7 @@ export function generateFootnotes(model: OOXMLDocumentModel): string {
   )
 }
 
-/** Generate list numbering */
+/** Generate endnotes */
 export function generateEndnotes(model: OOXMLDocumentModel): string {
   const children: JSX.IntrinsicElements[] = []
   const pageWidth: number = toTwip(model.pageSetup.paperWidth)
@@ -591,6 +591,47 @@ export function generateEndnotes(model: OOXMLDocumentModel): string {
       <w:endnotes xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
         {children}
       </w:endnotes>
+    )
+  )
+}
+
+/** Generate comments */
+export function generateComments(model: OOXMLDocumentModel): string {
+  const children: JSX.IntrinsicElements[] = []
+  const pageWidth: number = toTwip(model.pageSetup.paperWidth)
+  const pageHeight: number = toTwip(model.pageSetup.paperHeight)
+  const marginLeft: number = toTwip(model.pageSetup.margin?.left)
+  const marginRight: number = toTwip(model.pageSetup.margin?.right)
+  const marginTop: number = toTwip(model.pageSetup.margin?.top)
+  const marginBottom: number = toTwip(model.pageSetup.margin?.bottom)
+  const gutter = toTwip(model.pageSetup.gutter)
+  const geometry: SectionGeometry = {
+    pageWidth,
+    pageHeight,
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+    gutter,
+    contentWidth: pageWidth - marginLeft - marginRight - gutter,
+    contentHeight: pageHeight - marginTop - marginBottom,
+  }
+
+  for (const entry of model.commentRegistry.entries()) {
+    const initials = entry.item.author.match(/\b\w/g)?.join("").toUpperCase() || "??"
+
+    children.push(
+      <w:comment w:id={entry.index} w:author={entry.item.author} w:initials={initials} w:date={entry.item.timestamp.toISOString()}>
+        {generateParagraph(model, model.relationshipRegistries["comments.xml"], geometry, entry.item.content)}
+      </w:comment>
+    )
+  }
+  return (
+    XML_STANDALONE_HEADER +
+    (
+      <w:comments xmlns:r={RELATIONSHIPS_OFFICE_DOCUMENT_NS} xmlns:w={WORDPROCESSINGML_MAIN_NS}>
+        {children}
+      </w:comments>
     )
   )
 }

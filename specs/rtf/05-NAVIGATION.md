@@ -382,32 +382,79 @@ Document variables enable dynamic content:
 
 ## Comments and Annotations
 
-Comments provide review and annotation capabilities:
+RTF comments (annotations) provide review and annotation capabilities. Comments have two parts: the author ID (introduced by `\atnid`) and the comment text (introduced by `\annotation`). There is no group enclosing both parts. Each part of the comment is an RTF destination. Comments are anchored to the character that immediately precedes the comment.
 
-### Comment Syntax
-
-```rtf
-{\*\atnid author-id}{\*\atndate date-time}
-{\*\annot comment-text}
-```
+**Important**: Microsoft products do not support comments within headers, footers, or footnotes. Placing a comment within these areas may result in a corrupted document.
 
 ### Comment Controls
 
-| Control Word   | Description                    |
-| -------------- | ------------------------------ |
-| `\*\annot`     | Annotation/comment destination |
-| `\*\atnid`     | Author ID for comment          |
-| `\*\atndate`   | Comment creation date          |
-| `\*\atrfstart` | Start of comment reference     |
-| `\*\atrfend`   | End of comment reference       |
+| Control Word    | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `\*\atnid`      | Author ID/initials for comment                    |
+| `\*\atnauthor`  | Full author name for comment                      |
+| `\chatn`        | Annotation reference character                    |
+| `\*\annotation` | Annotation/comment definition (contains the text) |
+| `\*\atnref`     | Annotation reference number                       |
+| `\*\atndate`    | Comment creation date (Unix timestamp)            |
+| `\*\atntime`    | Comment creation time (structured time)           |
+| `\*\atnparent`  | Parent annotation ID (for threaded comments)      |
+| `\*\atnicn`     | Annotation icon (picture)                         |
+| `\*\atrfstart`  | Start of annotation bookmark reference            |
+| `\*\atrfend`    | End of annotation bookmark reference              |
 
-### Comment Example
+### Annotation Bookmarks
+
+If an annotation is associated with an annotation bookmark, the following two destination control words precede and follow the bookmark. The alphanumeric string N (such as a long integer) represents the bookmark name:
+
+```rtf
+{\*\atrfstart N}
+...bookmarked content...
+{\*\atrfend N}
+```
+
+### Basic Comment Example
 
 ```rtf
 {\rtf1\ansi\deff0
 {\fonttbl{\f0\froman Times New Roman;}}
-This text has a comment.{\*\atnid1}{\*\atndate 1704067200}
-{\*\annot This is a reviewer comment about the preceding text.}\par
+An example of a paradigm might be Darwinian biology.
+{\*\atnid JD}{\*\atnauthor John Doe}\chatn
+{\*\annotation{\*\atndate 1180187342}{\*\atnref 1}
+\pard\plain How about some examples that deal with social science?
+That is what this paper is about.\par
+}
+}
+```
+
+### Comment with Time Stamp
+
+```rtf
+{\rtf1\ansi\deff0
+This text has a detailed comment.
+{\*\atnid AB}{\*\atnauthor Alice Brown}
+{\*\atntime\yr2024\mo1\dy15\hr10\min30\sec0}\chatn
+{\*\annotation{\*\atndate 1705315800}{\*\atnref 1}
+\pard\plain This needs clarification.\par
+}
+}
+```
+
+### Threaded Comments (Reply to Comment)
+
+```rtf
+{\rtf1\ansi\deff0
+Original text with comment.
+{\*\atnid CD}{\*\atnauthor Carol Davis}\chatn
+{\*\annotation{\*\atndate 1705315800}{\*\atnref 1}
+\pard\plain First comment.\par
+}
+
+Reply to the comment.
+{\*\atnid EF}{\*\atnauthor Eve Foster}\chatn
+{\*\annotation{\*\atndate 1705319400}{\*\atnref 2}
+{\*\atnparent CD}
+\pard\plain Reply to first comment.\par
+}
 }
 ```
 

@@ -2,7 +2,19 @@
  * RichTextDocument - Complete RTF document state management.
  */
 
-import { RTFCharset, RTFColor, RTFDocumentInfo, RTFFont, RTFList, RTFPageSetup, RTFSection, RTFStyle, RTFTypographySettings, RTFViewSettings } from "./types"
+import {
+  RTFCharset,
+  RTFColor,
+  RTFComment,
+  RTFDocumentInfo,
+  RTFFont,
+  RTFList,
+  RTFPageSetup,
+  RTFSection,
+  RTFStyle,
+  RTFTypographySettings,
+  RTFViewSettings,
+} from "./types"
 import { deepCopy, deepEqual, inch, pt, RTFRegistry } from "./utils"
 
 /** Default tab width */
@@ -40,6 +52,7 @@ export type RichTextDocumentModel = {
   styleRegistry: RTFRegistry<RTFStyle>
   listRegistry: RTFRegistry<RTFList>
   bookmarkRegistry: RTFRegistry<string>
+  commentRegistry: RTFRegistry<RTFComment>
 
   // Document sections
   sections: RTFSection[]
@@ -56,6 +69,7 @@ export type RichTextDocumentValidator = {
   validateFontEntry(model: RichTextDocumentModel, alias: string, value: RTFFont): void
   validateStyleEntry(model: RichTextDocumentModel, alias: string, value: RTFStyle, pendingStyleAliases: string[]): void
   validateListEntry(model: RichTextDocumentModel, alias: string, value: RTFList): void
+  validateCommenEntry(model: RichTextDocumentModel, alias: string, value: RTFComment): void
   validateSection(model: RichTextDocumentModel, value: Partial<RTFSection>): void
 }
 
@@ -113,29 +127,34 @@ export interface RichTextDocument<T> {
   variables(items: Record<string, string>): this
 
   /**
-   * Add a color to the color table (fluent interface)
+   * Add colors to the color table (fluent interface)
    */
   colors(items: Record<string, RTFColor>): this
 
   /**
-   * Add a font to the font table (fluent interface)
+   * Add fonts to the font table (fluent interface)
    */
   fonts(items: Record<string, RTFFont>): this
 
   /**
-   * Add a style to the stylesheet (fluent interface)
+   * Add styles to the stylesheet (fluent interface)
    */
   styles(items: Record<string, RTFStyle>): this
 
   /**
-   * Register a list with an alias
+   * Register lists with alias
    */
   lists(items: Record<string, RTFList>): this
 
   /**
-   * Register a bookmark name
+   * Register bookmarks
    */
   bookmarks(names: Record<string, string>): this
+
+  /**
+   * Register comments with alias
+   */
+  comments(items: Record<string, RTFComment>): this
 
   /**
    * Add a new section to the document
@@ -171,6 +190,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     styleRegistry: new RTFRegistry<RTFStyle>({ eq: deepEqual, prefix: "s" }),
     listRegistry: new RTFRegistry<RTFList>({ eq: () => false, prefix: "l", startAt: 1 }),
     bookmarkRegistry: new RTFRegistry<string>({ eq: (a, b) => a === b, prefix: "bk" }),
+    commentRegistry: new RTFRegistry<RTFComment>({ eq: () => false, prefix: "cm", startAt: 1 }),
     sections: [],
   }
 
@@ -217,14 +237,8 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     this.validator = options.validator
   }
 
-  /**
-   * Render the document to the desired output format
-   */
   abstract render(): T
 
-  /**
-   * Copy all content and settings from another document
-   */
   copyFrom(other: AbstractRichTextDocument<unknown>): this {
     // Deep copy all properties directly
     this.model.info = deepCopy(other.model.info)
@@ -242,23 +256,18 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     this.model.styleRegistry.copyFrom(other.model.styleRegistry)
     this.model.listRegistry.copyFrom(other.model.listRegistry)
     this.model.bookmarkRegistry.copyFrom(other.model.bookmarkRegistry)
+    this.model.commentRegistry.copyFrom(other.model.commentRegistry)
 
     // Deep copy content using deepCopy
     this.model.sections = deepCopy(other.model.sections)
     return this
   }
 
-  /**
-   * Set document charset
-   */
   charset(charset: RTFCharset): this {
     this.model.charset = charset
     return this
   }
 
-  /**
-   * Set document information properties
-   */
   info(info: Partial<RTFDocumentInfo>): this {
     const updated = { ...this.model.info, ...info }
 
@@ -267,9 +276,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Set page setup properties
-   */
   pageSetup(setup: Partial<RTFPageSetup>): this {
     const updated = { ...this.model.pageSetup, ...setup }
 
@@ -278,9 +284,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Set view settings
-   */
   viewSettings(settings: Partial<RTFViewSettings>): this {
     const updated = { ...this.model.viewSettings, ...settings }
 
@@ -289,9 +292,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Set typography settings
-   */
   typography(settings: Partial<RTFTypographySettings>): this {
     const updated = { ...this.model.typography, ...settings }
 
@@ -300,9 +300,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Add multiple document variables (fluent interface)
-   */
   variables(items: Record<string, string>): this {
     for (const [name, value] of Object.entries(items)) {
       this.validator?.validateVariableEntry(this.model, name, value)
@@ -311,9 +308,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Add a color to the color table (fluent interface)
-   */
   colors(items: Record<string, RTFColor>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateColorEntry(this.model, alias, value)
@@ -322,9 +316,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Add a font to the font table (fluent interface)
-   */
   fonts(items: Record<string, RTFFont>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateFontEntry(this.model, alias, value)
@@ -333,9 +324,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Add a style to the stylesheet (fluent interface)
-   */
   styles(items: Record<string, RTFStyle>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateStyleEntry(this.model, alias, value, Object.keys(items))
@@ -344,9 +332,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Register a list with an alias
-   */
   lists(items: Record<string, RTFList>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.validator?.validateListEntry(this.model, alias, value)
@@ -355,9 +340,6 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Register a bookmark name
-   */
   bookmarks(items: Record<string, string>): this {
     for (const [alias, value] of Object.entries(items)) {
       this.model.bookmarkRegistry.register(value, alias)
@@ -365,9 +347,14 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
     return this
   }
 
-  /**
-   * Add a new section to the document
-   */
+  comments(items: Record<string, RTFComment>): this {
+    for (const [alias, value] of Object.entries(items)) {
+      this.validator?.validateCommenEntry(this.model, alias, value)
+      this.model.commentRegistry.register(value, alias)
+    }
+    return this
+  }
+
   sections(...sections: RTFSection[]): this {
     for (const section of sections) {
       this.validator?.validateSection(this.model, section)

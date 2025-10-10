@@ -26,10 +26,10 @@ Then, there is plenty of room for improvements and additional features; contribu
 
 - [ ] Battle testing the document builder interface and ironing out discrepancies (`~v0.9`)
 - [ ] Refining the renderer to have maximum compatibility with popular text editors (`~v1.0`)
-- [ ] A module to convert a markdown file to RTF (maybe using micromark?)
+- [x] A module to convert a simple HTML document to RTF (ideal for rendered markdown)
 - [x] A renderer for OOXML (but only for cross-compatible features with RTF)
 - [ ] Implementation of additional RTF constructs
-  - [ ] comments
+  - [x] comments
   - [ ] custom tab markers
   - [ ] picture/shape with text flow
   - [ ] positioned frame
