@@ -157,7 +157,7 @@ export function generateCharacterElement(
     switch (item.type) {
       case "text":
         if (element.comment !== undefined && element.comment.highlight === "firstWord" && !commentRendered) {
-          const match = item.text.match(/^([ \t\r\n.,:;!?|-]*)([^ \t\r\n.,:;!?|-]+)(\s.*)$/)
+          const match = item.text.match(/^([ \t\r\n.,:;!?|-]*)([^ \t\r\n.,:;!?|-][^ \t\r\n,:;!?|]*)(\s.*)$/)
           const prefix = match ? match[1] : ""
           const first = match ? match[2] : item.text
           const remaining = match ? match[3] : ""

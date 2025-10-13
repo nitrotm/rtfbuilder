@@ -119,7 +119,7 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
           parts.push(" ")
         }
         if (element.comment !== undefined && element.comment.highlight === "firstWord" && !commentEnded) {
-          const match = item.text.match(/^([ \t\r\n.,:;!?|-]*)([^ \t\r\n.,:;!?|-]+)(\s.*)$/)
+          const match = item.text.match(/^([ \t\r\n.,:;!?|-]*)([^ \t\r\n.,:;!?|-][^ \t\r\n,:;!?|]*)(\s.*)$/)
           const prefix = match ? match[1] : ""
           const first = match ? match[2] : item.text
           const remaining = match ? match[3] : ""
