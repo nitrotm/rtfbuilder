@@ -12,6 +12,7 @@ import {
 import { RTFBuilder, SpecialContent } from "./base"
 import { CommentBuilder } from "./comment"
 import { FootnoteBuilder } from "./footnote"
+import { ParagraphBuilder } from "./paragraph"
 
 type InlineFactory = () => RTFCharacterContentElement | null
 
@@ -21,6 +22,14 @@ export class CharacterBuilder extends RTFBuilder<RTFCharacterElement> {
   private _bookmarkAlias?: string
   private _link?: RTFHyperlink
   readonly comment = new CommentBuilder(this)
+
+  constructor(private readonly _paragraph: ParagraphBuilder) {
+    super(_paragraph)
+  }
+
+  get paragraph(): ParagraphBuilder {
+    return this._paragraph
+  }
 
   get empty(): boolean {
     return this._children.length === 0

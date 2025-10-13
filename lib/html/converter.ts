@@ -244,7 +244,6 @@ async function visitParagraphElement(
   options: Partial<{
     bookmarkAlias: string
     externalUrl: string
-    footnote: string
     trimBefore: boolean
     trimAfter: boolean
   }>
@@ -290,7 +289,7 @@ async function visitParagraphElement(
         break
       case "cite":
         childFormatting.styleAlias = HTML_STYLE_COMMENT
-        childParagraph = paragraph.lastChunk.comment.paragraph.with({ styleAlias: HTML_STYLE_COMMENT })
+        childParagraph = paragraph.lastChunk.comment.highlight("firstWord").paragraph.with({ styleAlias: HTML_STYLE_COMMENT })
         break
     }
 

@@ -282,6 +282,7 @@ export type RTFComment = {
   alias: string
   timestamp?: Date
   author?: string
+  highlight: "firstWord" | "all"
   content: RTFParagraphElement // Content of the comment
 }
 

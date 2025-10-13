@@ -87,8 +87,11 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
   }
 
   // Comment start
-  if (element.comment !== undefined) {
-    parts.push(`{\\*\\atrfstart ${model.commentRegistry.index(element.comment.alias)}}`)
+  const commentIndex = element.comment !== undefined ? model.commentRegistry.index(element.comment.alias) : -1
+  let commentEnded = false
+
+  if (element.comment !== undefined && element.comment.highlight === "all") {
+    parts.push(`{\\*\\atrfstart ${commentIndex}}`)
     needSpace = false
   }
 
@@ -116,7 +119,23 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
         if (needSpace) {
           parts.push(" ")
         }
-        chunk = escapeRTFText(item.text)
+        if (element.comment !== undefined && element.comment.highlight === "firstWord" && !commentEnded) {
+          const match = item.text.match(/^([ \t\r\n.,:;!?|-]*)([^ \t\r\n.,:;!?|-]+)(\s.*)$/)
+          const prefix = match ? match[1] : ""
+          const first = match ? match[2] : item.text
+          const remaining = match ? match[3] : ""
+
+          chunk = escapeRTFText(prefix)
+          chunk += `{\\*\\atrfstart ${commentIndex}}`
+          chunk += escapeRTFText(first)
+          chunk += `{\\*\\atrfend ${commentIndex}}`
+          if (remaining.length > 0) {
+            chunk += escapeRTFText(remaining)
+          }
+          commentEnded = true
+        } else {
+          chunk = escapeRTFText(item.text)
+        }
         needSpace = false
         break
       case "footnote":
@@ -187,12 +206,13 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
 
   // Comment end
   if (element.comment !== undefined) {
-    const commentIndex = model.commentRegistry.index(element.comment.alias)
     const timestamp = element.comment.timestamp || model.creationDate
     const author = element.comment.author || model.author
     const initials = author.match(/\b\w/g)?.join("")?.toUpperCase() || "NA"
 
-    parts.push(`{\\*\\atrfend ${commentIndex}}`)
+    if (!commentEnded) {
+      parts.push(`{\\*\\atrfend ${commentIndex}}`)
+    }
     parts.push(`{\\*\\atnid ${escapeRTFText(initials)}}{\\*\\atnauthor ${escapeRTFText(author)}}`)
     parts.push(`\\chatn{\\*\\annotation{\\*\\atndate ${generateDTTMTimestamp(timestamp)}}{\\*\\atnref ${commentIndex}}`)
     parts.push(generateParagraph(model, geometry, element.comment.content))

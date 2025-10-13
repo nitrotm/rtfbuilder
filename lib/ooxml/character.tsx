@@ -149,11 +149,40 @@ export function generateCharacterElement(
       lastRun = []
     }
   }
+  const commentId = element.comment !== undefined ? model.commentRegistry.index(element.comment.alias) : -1
+  let commentRendered = false
 
   for (const item of element.content) {
     switch (item.type) {
       case "text":
-        lastRun.push(<w:t xml:space="preserve">{item.text}</w:t>)
+        if (element.comment !== undefined && element.comment.highlight === "firstWord" && !commentRendered) {
+          const match = item.text.match(/^([ \t\r\n.,:;!?|-]*)([^ \t\r\n.,:;!?|-]+)(\s.*)$/)
+          const prefix = match ? match[1] : ""
+          const first = match ? match[2] : item.text
+          const remaining = match ? match[3] : ""
+
+          if (prefix.length > 0) {
+            lastRun.push(<w:t xml:space="preserve">{prefix}</w:t>)
+          }
+          flushLastRun()
+
+          children.push(<w:commentRangeStart w:id={commentId} />)
+          lastRun.push(<w:t xml:space="preserve">{first}</w:t>)
+          flushLastRun()
+
+          children.push(
+            <w:commentRangeEnd w:id={commentId} />,
+            <w:r>
+              <w:commentReference w:id={commentId} />
+            </w:r>
+          )
+          if (remaining.length > 0) {
+            lastRun.push(<w:t xml:space="preserve">{remaining}</w:t>)
+          }
+          commentRendered = true
+        } else {
+          lastRun.push(<w:t xml:space="preserve">{item.text}</w:t>)
+        }
         break
       case "footnote":
         flushLastRun()
@@ -288,12 +317,12 @@ export function generateCharacterElement(
     run.unshift(<w:bookmarkStart w:id={model.bookmarkRegistry.index(element.bookmarkAlias)} w:name={model.bookmarkRegistry.get(element.bookmarkAlias).item} />)
     run.push(<w:bookmarkEnd w:id={model.bookmarkRegistry.index(element.bookmarkAlias)} />)
   }
-  if (element.comment !== undefined) {
-    run.unshift(<w:commentRangeStart w:id={model.commentRegistry.index(element.comment.alias)} />)
+  if (element.comment !== undefined && !commentRendered) {
+    run.unshift(<w:commentRangeStart w:id={commentId} />)
     run.push(
-      <w:commentRangeEnd w:id={model.commentRegistry.index(element.comment.alias)} />,
+      <w:commentRangeEnd w:id={commentId} />,
       <w:r>
-        <w:commentReference w:id={model.commentRegistry.index(element.comment.alias)} />
+        <w:commentReference w:id={commentId} />
       </w:r>
     )
   }
