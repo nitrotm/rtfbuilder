@@ -68,11 +68,12 @@ export type OOXMLRelationship = {
   targetMode?: "External"
   data?: string | Uint8Array<ArrayBufferLike>
   contentType?: string
+  standalone?: boolean
 }
 
 export function createRelationshipRegistry() {
   return new RTFRegistry<OOXMLRelationship>({
-    eq: (a, b) => a.type === b.type && a.target === b.target && a.targetMode === b.targetMode,
+    eq: (a, b) => a.type === b.type && a.target === b.target && a.targetMode === b.targetMode && !a.standalone && !b.standalone,
     prefix: "rId",
     startAt: 1,
   })

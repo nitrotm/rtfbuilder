@@ -283,7 +283,7 @@ export type RTFComment = {
   timestamp?: Date
   author?: string
   highlight: "firstWord" | "all"
-  content: RTFParagraphElement // Content of the comment
+  content: RTFParagraphElement[] // Content of the comment
 }
 
 /** Character element with inline content and formatting */

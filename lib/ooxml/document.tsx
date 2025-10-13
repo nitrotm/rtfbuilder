@@ -7,6 +7,7 @@ import {
   DC_ELEMENTS_NS,
   DC_TERMS_NS,
   DCMI_TYPE_NS,
+  generateElements,
   OOXMLDocumentModel,
   RELATIONSHIPS_OFFICE_DOCUMENT_NS,
   SectionGeometry,
@@ -624,7 +625,7 @@ export function generateComments(model: OOXMLDocumentModel): string {
 
     children.push(
       <w:comment w:id={entry.index} w:author={author} w:initials={initials} w:date={timestamp.toISOString()}>
-        {generateParagraph(model, model.relationshipRegistries["comments.xml"], geometry, entry.item.content)}
+        {generateElements(model, model.relationshipRegistries["comments.xml"], geometry, entry.item.content)}
       </w:comment>
     )
   }

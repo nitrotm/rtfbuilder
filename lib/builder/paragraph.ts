@@ -44,12 +44,12 @@ export class ParagraphBuilder extends RTFBuilder<RTFParagraphElement> {
     for (const item of items) {
       if (typeof item === "string") {
         if (!last) {
-          last = this.newChunk()
+          last = this.lastChunk
         }
         last.text(item)
       } else if ("special" in item) {
         if (!last) {
-          last = this.newChunk()
+          last = this.lastChunk
         }
         last.special(item.special)
       } else {

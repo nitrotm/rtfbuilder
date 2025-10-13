@@ -5,6 +5,7 @@ import { ParagraphBuilder } from "../builder/paragraph"
 import { TableBuilder, TableRowBuilder } from "../builder/table"
 import { RTFCharacterFormatting } from "../types"
 import { createPictureDataFromImage, pt } from "../utils"
+import { CommentBuilder } from "lib/builder/comment"
 
 // paragraph styles
 export const HTML_STYLE_H1 = "heading 1"
@@ -244,21 +245,21 @@ async function visitParagraphElement(
   options: Partial<{
     bookmarkAlias: string
     externalUrl: string
+    comment: CommentBuilder
     trimBefore: boolean
     trimAfter: boolean
   }>
 ) {
+  let childParagraph = options.comment ? options.comment.lastParagraph : paragraph
+
   if (node.nodeType === ELEMENT_NODE) {
     const el = node as Element
     const childFormatting = { ...formatting }
     const childBookmarkAlias = el.getAttribute("id") || options.bookmarkAlias
     const childExternalUrl = el.nodeName.toLowerCase() === "a" ? el.getAttribute("href") || options.externalUrl : options.externalUrl
-    let childParagraph = paragraph
+    let childComment = options.comment
 
     switch (el.nodeName.toLowerCase()) {
-      case "br":
-        paragraph.withText({ special: "lineBreak" })
-        break
       case "b":
       case "strong":
         childFormatting.bold = true
@@ -280,16 +281,22 @@ async function visitParagraphElement(
         childFormatting.flags = (childFormatting.flags || []).concat("superscript").filter((flag) => flag !== "subscript")
         break
       case "a":
-        childFormatting.styleAlias = "hyperlink"
+        childFormatting.styleAlias = HTML_STYLE_HYPERLINK
         break
-      case "img":
-        if (node.nodeName.toLowerCase() === "img") {
-          paragraph.withPicture(await createPictureDataFromImage(node as HTMLImageElement, "jpeg"))
+      case "br":
+        if (options.comment) {
+          options.comment.newParagraph()
+        } else {
+          paragraph.withText({ special: "lineBreak" })
         }
-        break
+        return
+      case "img":
+        paragraph.withPicture(await createPictureDataFromImage(node as HTMLImageElement, "jpeg"))
+        return
       case "cite":
+        childComment = paragraph.lastChunk.comment.highlight("firstWord")
+        childParagraph = childComment.lastParagraph.with({ styleAlias: HTML_STYLE_COMMENT })
         childFormatting.styleAlias = HTML_STYLE_COMMENT
-        childParagraph = paragraph.lastChunk.comment.highlight("firstWord").paragraph.with({ styleAlias: HTML_STYLE_COMMENT })
         break
     }
 
@@ -299,6 +306,7 @@ async function visitParagraphElement(
       await visitParagraphElement(child, childParagraph, childFormatting, {
         bookmarkAlias: childBookmarkAlias,
         externalUrl: childExternalUrl,
+        comment: childComment,
         trimBefore: options.trimBefore && i > 0,
         trimAfter: options.trimAfter && i < node.childNodes.length - 1,
       })
@@ -311,16 +319,16 @@ async function visitParagraphElement(
       return
     }
     if (options.bookmarkAlias) {
-      paragraph.newChunk().bookmark(options.bookmarkAlias)
+      childParagraph.newChunk().bookmark(options.bookmarkAlias)
     }
     if (options.externalUrl) {
       if (options.externalUrl.startsWith("#")) {
-        paragraph.withBookmarkLink(options.externalUrl.substring(1), content, formatting)
+        childParagraph.withBookmarkLink(options.externalUrl.substring(1), content, formatting)
       } else {
-        paragraph.withExternalLink(options.externalUrl, content, formatting)
+        childParagraph.withExternalLink(options.externalUrl, content, formatting)
       }
     } else {
-      paragraph.withText(formatting, content)
+      childParagraph.withText(formatting, content)
     }
   }
 }

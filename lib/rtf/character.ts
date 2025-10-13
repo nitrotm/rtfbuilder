@@ -2,8 +2,7 @@ import { RichTextDocumentModel, FOOTNOTE_BACKGROUND_COLOR_ALIAS, FOOTNOTE_COLOR_
 import { RTFCharacterElement, RTFCharacterFlag, RTFCharacterFormatting, RTFFootnoteElement, RTFPictureElement, RTFPictureType } from "../types"
 import { toHalfPoint, toTwip } from "../utils"
 
-import { escapeRTFText, generateDTTMTimestamp, generateElement, SectionGeometry } from "./base"
-import { generateParagraph } from "./paragraph"
+import { escapeRTFText, generateDTTMTimestamp, generateElement, generateElements, SectionGeometry } from "./base"
 
 /** Generate character formatting control words */
 export function generateCharacterFormatting(model: RichTextDocumentModel, formatting: Partial<RTFCharacterFormatting> = {}): string {
@@ -215,7 +214,7 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
     }
     parts.push(`{\\*\\atnid ${escapeRTFText(initials)}}{\\*\\atnauthor ${escapeRTFText(author)}}`)
     parts.push(`\\chatn{\\*\\annotation{\\*\\atndate ${generateDTTMTimestamp(timestamp)}}{\\*\\atnref ${commentIndex}}`)
-    parts.push(generateParagraph(model, geometry, element.comment.content))
+    parts.push(...generateElements(model, geometry, element.comment.content))
     parts.push("}")
     needSpace = false
   }

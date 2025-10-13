@@ -2,9 +2,9 @@ import { RichTextDocumentModel } from "../document"
 import { RTFColor, RTFComment, RTFDocumentInfo, RTFFont, RTFList, RTFListLevel, RTFPageSetup, RTFStyle, RTFTypographySettings, RTFViewSettings } from "../types"
 import { toTwip } from "../utils"
 
-import { INVALID_CTRL_CHARS, INVALID_NAME_CHARS, validateRTFRect, validateRTFSize } from "./base"
+import { INVALID_CTRL_CHARS, INVALID_NAME_CHARS, validateElements, validateRTFRect, validateRTFSize } from "./base"
 import { validateCharacterFormatting } from "./character"
-import { validateParagraph, validateParagraphFormatting } from "./paragraph"
+import { validateParagraphFormatting } from "./paragraph"
 import { validateSectionFormatting } from "./section"
 
 /**
@@ -407,5 +407,5 @@ export function validateListLevelEntry(_model: RichTextDocumentModel, level: num
  * Validate list entry
  */
 export function validateCommentEntry(model: RichTextDocumentModel, _alias: string, value: RTFComment): void {
-  validateParagraph(model, value.content)
+  validateElements(model, value.content)
 }

@@ -28,6 +28,7 @@ function wrapHyperlink(
             type: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
             target: element.link.url,
             targetMode: "External",
+            standalone: true,
           })}
         >
           {children}
@@ -162,12 +163,12 @@ export function generateCharacterElement(
           const remaining = match ? match[3] : ""
 
           if (prefix.length > 0) {
-            lastRun.push(<w:t xml:space="preserve">{prefix}</w:t>)
+            lastRun.push(<w:t>{prefix}</w:t>)
           }
           flushLastRun()
 
           children.push(<w:commentRangeStart w:id={commentId} />)
-          lastRun.push(<w:t xml:space="preserve">{first}</w:t>)
+          lastRun.push(<w:t>{first}</w:t>)
           flushLastRun()
 
           children.push(
@@ -177,11 +178,11 @@ export function generateCharacterElement(
             </w:r>
           )
           if (remaining.length > 0) {
-            lastRun.push(<w:t xml:space="preserve">{remaining}</w:t>)
+            lastRun.push(<w:t>{remaining}</w:t>)
           }
           commentRendered = true
-        } else {
-          lastRun.push(<w:t xml:space="preserve">{item.text}</w:t>)
+        } else if (item.text.length > 0) {
+          lastRun.push(<w:t>{item.text}</w:t>)
         }
         break
       case "footnote":
@@ -248,16 +249,26 @@ export function generateCharacterElement(
         )
         break
       case "pageBreak":
-        lastRun.push(<w:br w:type="page" />)
+        flushLastRun()
+        children.push(
+          <w:r>
+            <w:br w:type="page" />
+          </w:r>
+        )
         break
       case "lineBreak":
-        lastRun.push(<w:br />)
+        flushLastRun()
+        children.push(
+          <w:r>
+            <w:br />
+          </w:r>
+        )
         break
       case "tab":
         lastRun.push(<w:tab />)
         break
       case "nonBreakingSpace":
-        lastRun.push(<w:t xml:space="preserve">&#160;</w:t>)
+        lastRun.push(<w:t>&#160;</w:t>)
         break
       case "nonBreakingHyphen":
         lastRun.push(<w:noBreakHyphen />)
