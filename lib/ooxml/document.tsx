@@ -618,10 +618,12 @@ export function generateComments(model: OOXMLDocumentModel): string {
   }
 
   for (const entry of model.commentRegistry.entries()) {
-    const initials = entry.item.author.match(/\b\w/g)?.join("").toUpperCase() || "??"
+    const timestamp = entry.item.timestamp || model.creationDate
+    const author = entry.item.author || model.author
+    const initials = author.match(/\b\w/g)?.join("")?.toUpperCase() || "NA"
 
     children.push(
-      <w:comment w:id={entry.index} w:author={entry.item.author} w:initials={initials} w:date={entry.item.timestamp.toISOString()}>
+      <w:comment w:id={entry.index} w:author={author} w:initials={initials} w:date={timestamp.toISOString()}>
         {generateParagraph(model, model.relationshipRegistries["comments.xml"], geometry, entry.item.content)}
       </w:comment>
     )

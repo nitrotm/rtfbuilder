@@ -1,5 +1,7 @@
+import { RichTextDocumentValidator } from "lib/document"
 import {
   validateColorEntry,
+  validateCommentEntry,
   validateDocumentInfo,
   validateFontEntry,
   validateListEntry,
@@ -11,7 +13,7 @@ import {
 } from "./document"
 import { validateSection } from "./section"
 
-export const RTF_DOCUMENT_VALIDATOR = {
+export const RTF_DOCUMENT_VALIDATOR: RichTextDocumentValidator = {
   validateDocumentInfo,
   validatePageSetup,
   validateViewSettings,
@@ -21,5 +23,6 @@ export const RTF_DOCUMENT_VALIDATOR = {
   validateFontEntry,
   validateStyleEntry,
   validateListEntry,
+  validateCommentEntry,
   validateSection,
 }

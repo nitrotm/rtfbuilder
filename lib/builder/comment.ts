@@ -6,8 +6,8 @@ import { ParagraphBuilder } from "./paragraph"
 
 export class CommentBuilder extends RTFBuilder<RTFComment> {
   readonly paragraph: ParagraphBuilder = new ParagraphBuilder(this).lazy()
-  private _timestamp: Date = new Date()
-  private _author: string = "RTF"
+  private _timestamp?: Date
+  private _author?: string
 
   constructor(parent: RTFBuilder<unknown>) {
     super(parent)

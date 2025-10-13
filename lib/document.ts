@@ -37,6 +37,8 @@ export const FOOTNOTE_BACKGROUND_COLOR_ALIAS = "footnotebg"
 /** Internal document model */
 export type RichTextDocumentModel = {
   // Document metadata and settings
+  creationDate: Date
+  author: string
   charset: RTFCharset
   info: Partial<RTFDocumentInfo>
   pageSetup: Partial<RTFPageSetup>
@@ -69,7 +71,7 @@ export type RichTextDocumentValidator = {
   validateFontEntry(model: RichTextDocumentModel, alias: string, value: RTFFont): void
   validateStyleEntry(model: RichTextDocumentModel, alias: string, value: RTFStyle, pendingStyleAliases: string[]): void
   validateListEntry(model: RichTextDocumentModel, alias: string, value: RTFList): void
-  validateCommenEntry(model: RichTextDocumentModel, alias: string, value: RTFComment): void
+  validateCommentEntry(model: RichTextDocumentModel, alias: string, value: RTFComment): void
   validateSection(model: RichTextDocumentModel, value: Partial<RTFSection>): void
 }
 
@@ -166,6 +168,8 @@ export interface RichTextDocument<T> {
 export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T> {
   // Internal document model
   protected readonly model: RichTextDocumentModel = {
+    creationDate: new Date(),
+    author: "Unknown",
     charset: "ansi",
     info: {},
     pageSetup: {
@@ -241,6 +245,8 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
 
   copyFrom(other: AbstractRichTextDocument<unknown>): this {
     // Deep copy all properties directly
+    this.model.creationDate = new Date(other.model.creationDate)
+    this.model.author = other.model.author
     this.model.info = deepCopy(other.model.info)
     this.model.charset = other.model.charset
     this.model.pageSetup = deepCopy(other.model.pageSetup)
@@ -260,6 +266,16 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
 
     // Deep copy content using deepCopy
     this.model.sections = deepCopy(other.model.sections)
+    return this
+  }
+
+  creationDate(date: Date): this {
+    this.model.creationDate = new Date(date)
+    return this
+  }
+
+  author(name: string): this {
+    this.model.author = name
     return this
   }
 
@@ -349,7 +365,7 @@ export abstract class AbstractRichTextDocument<T> implements RichTextDocument<T>
 
   comments(items: Record<string, RTFComment>): this {
     for (const [alias, value] of Object.entries(items)) {
-      this.validator?.validateCommenEntry(this.model, alias, value)
+      this.validator?.validateCommentEntry(this.model, alias, value)
       this.model.commentRegistry.register(value, alias)
     }
     return this

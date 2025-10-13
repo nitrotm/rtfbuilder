@@ -280,8 +280,8 @@ export type RTFHyperlink =
 /** Comment definition - \annotation */
 export type RTFComment = {
   alias: string
-  timestamp: Date
-  author: string
+  timestamp?: Date
+  author?: string
   content: RTFParagraphElement // Content of the comment
 }
 

@@ -188,11 +188,13 @@ export function generateCharacter(model: RichTextDocumentModel, geometry: Sectio
   // Comment end
   if (element.comment !== undefined) {
     const commentIndex = model.commentRegistry.index(element.comment.alias)
-    const initials = element.comment.author.match(/\b\w/g)?.join("").toUpperCase() || "??"
+    const timestamp = element.comment.timestamp || model.creationDate
+    const author = element.comment.author || model.author
+    const initials = author.match(/\b\w/g)?.join("")?.toUpperCase() || "NA"
 
     parts.push(`{\\*\\atrfend ${commentIndex}}`)
-    parts.push(`{\\*\\atnid ${escapeRTFText(initials)}}{\\*\\atnauthor ${escapeRTFText(element.comment.author)}}`)
-    parts.push(`\\chatn{\\*\\annotation{\\*\\atndate ${generateDTTMTimestamp(element.comment.timestamp)}}{\\*\\atnref ${commentIndex}}`)
+    parts.push(`{\\*\\atnid ${escapeRTFText(initials)}}{\\*\\atnauthor ${escapeRTFText(author)}}`)
+    parts.push(`\\chatn{\\*\\annotation{\\*\\atndate ${generateDTTMTimestamp(timestamp)}}{\\*\\atnref ${commentIndex}}`)
     parts.push(generateParagraph(model, geometry, element.comment.content))
     parts.push("}")
     needSpace = false
