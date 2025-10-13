@@ -18,7 +18,7 @@ export const HTML_STYLE_CODE = "code"
 export const HTML_STYLE_QUOTE = "quote"
 export const HTML_STYLE_LIST = "list"
 export const HTML_STYLE_TABLE = "table"
-export const HTML_STYLE_FOOTNOTE = "footnote"
+export const HTML_STYLE_COMMENT = "comment"
 
 // character styles
 export const HTML_STYLE_HYPERLINK = "hyperlink"
@@ -85,7 +85,7 @@ export async function createBuilderFromSimpleHtml(source: Document): Promise<Ric
   builder.withStyle(HTML_STYLE_TABLE, {
     type: "paragraph",
   })
-  builder.withStyle(HTML_STYLE_FOOTNOTE, {
+  builder.withStyle(HTML_STYLE_COMMENT, {
     type: "character",
     characterFormatting: { fontSize: pt(9) },
   })
@@ -289,8 +289,8 @@ async function visitParagraphElement(
         }
         break
       case "cite":
-        childFormatting.styleAlias = HTML_STYLE_FOOTNOTE
-        childParagraph = paragraph.lastChunk.newFootnote().paragraph.with({ styleAlias: HTML_STYLE_FOOTNOTE })
+        childFormatting.styleAlias = HTML_STYLE_COMMENT
+        childParagraph = paragraph.lastChunk.comment.paragraph.with({ styleAlias: HTML_STYLE_COMMENT })
         break
     }
 
