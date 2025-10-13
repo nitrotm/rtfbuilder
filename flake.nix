@@ -154,7 +154,6 @@
                   xml_validation "$1" docProps/core.xml "$DEVENV_ROOT/schema/ooxml/opc-coreProperties.xsd"
                   xml_validation "$1" docProps/app.xml "$DEVENV_ROOT/schema/ooxml/shared-documentPropertiesExtended.xsd"
                   xml_validation "$1" _rels/.rels "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
-                  xml_validation "$1" word/_rels/document.xml.rels "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
 
                   wml_files=(
                     word/document.xml
@@ -163,11 +162,20 @@
                     word/fontTable.xml
                   )
                   wml_files+=(
-                    $(unzip -lqq "$1" | grep -o -E 'word/(header|firstHeader|evenHeader|footer|firstFooter|evenFooter|numbering)([0-9]+)?\.xml$' || echo)
+                    $(unzip -lqq "$1" | grep -o -E 'word/(header|firstHeader|evenHeader|footer|firstFooter|evenFooter|numbering|footnotes|endnotes|comments)([0-9]+)?\.xml$' || echo)
                   )
-                  echo "''${wml_files[@]}"
                   for i in "''${wml_files[@]}"; do
                     xml_validation "$1" "$i" "$DEVENV_ROOT/schema/ooxml/wml.xsd"
+                  done
+
+                  rel_files=(
+                    word/_rels/document.xml.rels
+                  )
+                  rel_files+=(
+                    $(unzip -lqq "$1" | grep -o -E 'word/_rels/(header|firstHeader|evenHeader|footer|firstFooter|evenFooter|numbering|footnotes|endnotes|comments)([0-9]+)?\.xml\.rels$' || echo)
+                  )
+                  for i in "''${rel_files[@]}"; do
+                    xml_validation "$1" "$i" "$DEVENV_ROOT/schema/ooxml/opc-relationships.xsd"
                   done
                 '';
               };
