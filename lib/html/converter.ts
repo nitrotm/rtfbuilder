@@ -199,28 +199,30 @@ async function visitListItemElement(el: HTMLLIElement, item: ListItemBuilder) {
 }
 
 async function visitTableElement(el: HTMLTableElement | HTMLTableSectionElement, table: TableBuilder) {
-  for (const childEl of iterator(el.childNodes)) {
-    if (childEl.nodeType !== ELEMENT_NODE) {
+  for (const child of iterator(el.childNodes)) {
+    if (child.nodeType !== ELEMENT_NODE) {
       continue
     }
+
+    const childEl = child as HTMLElement
+
     switch (childEl.nodeName.toLowerCase()) {
       case "thead":
         for (const rowEl of iterator(childEl.childNodes)) {
-          if (rowEl instanceof HTMLTableRowElement) {
-            await visitTableRowElement(rowEl, table.newHeaderRow())
+          if (rowEl.nodeType === ELEMENT_NODE && rowEl.nodeName.toLowerCase() === "tr") {
+            await visitTableRowElement(rowEl as HTMLTableRowElement, table.newHeaderRow())
           }
         }
         break
       case "tbody":
       case "tfoot":
-        if (childEl instanceof HTMLTableSectionElement) {
-          await visitTableElement(childEl, table)
-        }
+        await visitTableElement(childEl as HTMLTableSectionElement, table)
         break
       case "tr":
-        if (childEl instanceof HTMLTableRowElement) {
-          visitTableRowElement(childEl, table.newRow())
-        }
+        await visitTableRowElement(
+          childEl as HTMLTableRowElement,
+          [...iterator(childEl.childNodes)].some((x) => x.nodeName === "th") ? table.newHeaderRow() : table.newRow()
+        )
         break
       case "caption":
         // TODO:
