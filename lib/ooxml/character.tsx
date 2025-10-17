@@ -12,6 +12,10 @@ import {
   OOXMLRelationship,
 } from "./base"
 
+function spacePreserve(text: string): string | undefined {
+  return text.match(/^\s/) || text.match(/\s$/) ? "preserve" : undefined
+}
+
 function wrapHyperlink(
   model: OOXMLDocumentModel,
   relationshipRegistry: RTFRegistry<OOXMLRelationship>,
@@ -163,7 +167,7 @@ export function generateCharacterElement(
           const remaining = match ? match[3] : ""
 
           if (prefix.length > 0) {
-            lastRun.push(<w:t>{prefix}</w:t>)
+            lastRun.push(<w:t xml:space={spacePreserve(prefix)}>{prefix}</w:t>)
           }
           flushLastRun()
 
@@ -178,11 +182,11 @@ export function generateCharacterElement(
             </w:r>
           )
           if (remaining.length > 0) {
-            lastRun.push(<w:t>{remaining}</w:t>)
+            lastRun.push(<w:t xml:space={spacePreserve(remaining)}>{remaining}</w:t>)
           }
           commentRendered = true
         } else if (item.text.length > 0) {
-          lastRun.push(<w:t>{item.text}</w:t>)
+          lastRun.push(<w:t xml:space={spacePreserve(item.text)}>{item.text}</w:t>)
         }
         break
       case "footnote":
@@ -193,7 +197,7 @@ export function generateCharacterElement(
           lastRun.push(<w:footnoteReference w:id={model.footnoteRegistry.registerAsIndex(item)} w:customMarkFollows={item.customMark !== undefined} />)
         }
         if (item.customMark !== undefined) {
-          lastRun.push(<w:t>{item.customMark}</w:t>)
+          lastRun.push(<w:t xml:space={spacePreserve(item.customMark)}>{item.customMark}</w:t>)
         }
         flushLastRun({ flags: ["superscript"] })
         break
