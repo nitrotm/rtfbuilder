@@ -113,7 +113,7 @@ async function visitRootNode(node: ChildNode, section: SectionBuilder) {
       case "h6":
         await visitParagraphElement(
           node,
-          section.body.newParagraph().with({ styleAlias: `heading${parseInt(node.nodeName.substring(1))}` }),
+          section.body.newParagraph().with({ styleAlias: `heading ${parseInt(node.nodeName.substring(1))}` }),
           {},
           { trimBefore: true, trimAfter: true }
         )
