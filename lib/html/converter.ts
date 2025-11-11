@@ -34,6 +34,7 @@ export async function createBuilderFromSimpleHtml(source: Document): Promise<Ric
   const section = builder.newSection()
 
   builder.withColor("hyperlink", { red: 0, green: 0, blue: 255 })
+  builder.withColor("hr", { red: 200, green: 200, blue: 200 })
   builder.withStyle(HTML_STYLE_H1, {
     type: "paragraph",
     paragraphFormatting: { spaceBefore: pt(24), spaceAfter: pt(12) },
