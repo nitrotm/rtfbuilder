@@ -18,15 +18,24 @@ jobs:
           node-version: 22.x
           registry-url: https://registry.npmjs.org
           cache: yarn
-      - run: yarn install --immutable && yarn build
+      - run: yarn install --immutable
+      - run: yarn install --immutable
         working-directory: ./jsx-runtime
-      - run: yarn install --immutable && yarn build
+      - run: yarn build
+        working-directory: ./jsx-runtime
+      - run: yarn build
       - run: |
           actual_version="$(jq -r '.version' package.json)"
           if [ "$actual_version" != "${GITHUB_REF#refs/tags/v}" ]; then
             echo "Expected package.json to have version ${GITHUB_REF#refs/tags/v}, got $actual_version"
             exit 1
           fi
+      - run: |
+          echo "npmAuthToken: $NODE_AUTH_TOKEN" >> ./.yarnrc.yml
+          yarn npm publish --access public --provenance --tolerate-republish
+        working-directory: ./jsx-runtime/dist
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: |
           echo "npmAuthToken: $NODE_AUTH_TOKEN" >> ./.yarnrc.yml
           yarn npm publish --access public --provenance
