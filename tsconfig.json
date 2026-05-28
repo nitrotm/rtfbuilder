@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "dist",
     "paths": {},
     "typeRoots": ["./node_modules/@types", "./types"],
     "target": "es2018",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "rtfbuilder-jsx-runtime",
@@ -15,7 +14,6 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "downlevelIteration": true,
     "esModuleInterop": true,
     "importHelpers": true,
     "incremental": true,
