@@ -1,11 +1,11 @@
-import { SectionBuilder } from "../builder/section"
 import { RichTextDocumentBuilder } from "../builder"
+import { CommentBuilder } from "../builder/comment"
 import { ListItemBuilder } from "../builder/list"
 import { ParagraphBuilder } from "../builder/paragraph"
+import { SectionBuilder } from "../builder/section"
 import { TableBuilder, TableRowBuilder } from "../builder/table"
 import { RTFCharacterFormatting } from "../types"
 import { createPictureDataFromImage, pt } from "../utils"
-import { CommentBuilder } from "lib/builder/comment"
 
 // paragraph styles
 export const HTML_STYLE_H1 = "heading 1"
@@ -153,7 +153,7 @@ async function visitRootNode(node: ChildNode, section: SectionBuilder) {
         section.body.withText({ special: "lineBreak" })
         break
       case "cite":
-        // ignore at top-level
+        await visitParagraphElement(node, section.body.lastParagraph, {}, { trimBefore: true, trimAfter: true })
         break
       default:
         for (const child of iterator(node.childNodes)) {
@@ -297,6 +297,9 @@ async function visitParagraphElement(
         paragraph.withPicture(await createPictureDataFromImage(node as HTMLImageElement, "jpeg"))
         return
       case "cite":
+        if (paragraph.empty) {
+          paragraph.withText(el.getAttribute("data-mark") || "†")
+        }
         childComment = paragraph.lastChunk.comment.highlight("firstWord")
         childParagraph = childComment.lastParagraph.with({ styleAlias: HTML_STYLE_COMMENT })
         childFormatting.styleAlias = HTML_STYLE_COMMENT
