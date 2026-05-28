@@ -28,11 +28,13 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.cjs"
     },
     "./jsx-runtime": {
       "import": "./dist/jsx-runtime.js",
-      "require": "./dist/jsx-runtime.cjs"
+      "require": "./dist/jsx-runtime.cjs",
+      "types": "./dist/index.d.cjs"
     },
     "./package.json": "./package.json"
   },
