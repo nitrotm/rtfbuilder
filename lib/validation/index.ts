@@ -1,4 +1,4 @@
-import { RichTextDocumentValidator } from "lib/document"
+import { RichTextDocumentValidator } from "../document"
 import {
   validateColorEntry,
   validateCommentEntry,
