@@ -24,7 +24,7 @@ The library seems stable enough for some serious usage at this point. Ensuring t
 
 Then, there is plenty of room for improvements and additional features; contributions are welcome.
 
-- [ ] Battle testing the document builder interface and ironing out discrepancies (`~v0.9`)
+- [x] Battle testing the document builder interface and ironing out discrepancies (`~v0.9`)
 - [ ] Refining the renderer to have maximum compatibility with popular text editors (`~v1.0`)
 - [x] A module to convert a simple HTML document to RTF (ideal for rendered markdown)
 - [x] A renderer for OOXML (but only for cross-compatible features with RTF)
