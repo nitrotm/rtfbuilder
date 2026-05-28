@@ -21,6 +21,7 @@ export async function distHook() {
   data.main = data.main.replace(/^\.\/dist/, ".")
   data.module = data.module.replace(/^\.\/dist/, ".")
   replace(data.exports)
+  delete data.resolutions
   await writeFile("dist/package.json", JSON.stringify(data, null, 2))
 }
 
