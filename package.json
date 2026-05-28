@@ -1,6 +1,6 @@
 {
   "name": "rtfbuilder",
-  "version": "0.9.24",
+  "version": "0.9.25",
   "description": "A comprehensive JavaScript library for creating Rich Text Format (RTF) documents.",
   "keywords": [
     "rtf",
